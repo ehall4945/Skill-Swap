@@ -1,0 +1,53 @@
+.discover {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.discover-header h1 {
+  font-size: 32px;
+}
+
+.discover-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skill-card {
+  background: #F8FAFF;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  border: 1px solid #E5E7EB;
+  transition: all 0.15s ease;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+  cursor: pointer;
+}
+
+.skill-card h3 {
+  color: #0F172A;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.skill-card p {
+  color: #475569;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #EEF2FF;
+  color: #4338CA;
+  font-size: 13px;
+  font-weight: 600;
+  width: fit-content;
+}

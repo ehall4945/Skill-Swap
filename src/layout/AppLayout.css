@@ -1,0 +1,70 @@
+/*
+APP SHELL STYLES
+
+Controls:
+- App max width
+- Centering on screen
+- Main layout spacing
+- Heading and icons styling
+
+Affects all pages because all pages render inside AppLayout.
+*/
+
+.app-layout {
+  min-height: 100vh;
+  width: 100%;
+  background: #F4F6FA;
+}
+
+/* Sticky header for now, can change later */
+.app-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 20px 32px;
+  z-index: 10;
+}
+
+/* Center feed container */
+.feed-container {
+  width: 100%;
+  max-width: 1100px; /* So it doesn't look awkward on desktop, can change later */
+  margin: 40px auto;
+  padding: 32px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-button svg {
+  width: 26px;
+  height: 26px;
+  color: #334155; /* Starts lighter, so when hovered over it gets a bit darker */
+  transition: all 0.15s ease;
+}
+
+.icon-button:hover svg {
+  color: #0F172A;
+}
