@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Skill-Swap
 This project is part of our class COMP SCI 595-001: Capstone at UW-Milwaukee.
 
@@ -30,6 +29,7 @@ How to test if the containers are running
 1. Backend: Visit http://localhost:8000. You should see: {"status": "Skill-Swap Backend is Online"}.
 2. Django API Bridge: Visit http://localhost:8000/api/test/. This returns the JSON message for the frontend to consume.
 3. Frontend: Visit http://localhost:3000 to see the React interface.
+   
     *AMEND: REACT PAGES SEEM TO NOW BE HELD AT http://localhost:5173/*
 
 Development Shells
