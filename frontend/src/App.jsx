@@ -14,7 +14,7 @@ import Dashboard from "./pages/Dashboard";
 function App() {
   return (
     <AppLayout>
-      {/* Since home page and login page aren't created yet, automatically routes to discover page */}
+      {/* Since home page and login page aren't created yet, automatically routes to dashboard page */}
       <Dashboard />
     </AppLayout>
   );
