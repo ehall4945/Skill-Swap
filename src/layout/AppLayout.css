@@ -7,7 +7,7 @@ Controls:
 - Main layout spacing
 - Heading and icons styling
 
-Affects all pages because all pages render inside AppLayout.
+Affects all pages because all the pages render inside AppLayout.
 */
 
 .app-layout {
@@ -28,13 +28,15 @@ Affects all pages because all pages render inside AppLayout.
 
 /* Center feed container */
 .feed-container {
-  width: 100%;
-  max-width: 1100px; /* So it doesn't look awkward on desktop, can change later */
+  /* If screen is smaller than 1100px, prevents cards from taking whole screen */
+  width: 90%;
+  /* If screen is larger than 1100px, prevents it from looking too big */
+  max-width: 1100px;
   margin: 40px auto;
-  padding: 32px;
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+  /* Extra space at bottom of page, no ubrupt ending right after content */
+  padding-bottom: 5px; 
+  background: transparent;
+  box-shadow: none;
 }
 
 .header-inner {

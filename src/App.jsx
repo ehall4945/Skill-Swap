@@ -9,13 +9,13 @@ Later this is where routing will live (for now it auto routes to home page).
 */
 
 import AppLayout from "./layout/AppLayout";
-import Discover from "./pages/Discover";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
     <AppLayout>
       {/* Since home page and login page aren't created yet, automatically routes to discover page */}
-      <Discover />
+      <Dashboard />
     </AppLayout>
   );
 }
