@@ -26,19 +26,6 @@ Affects all pages because all the pages render inside AppLayout.
   z-index: 10;
 }
 
-/* Center feed container */
-.feed-container {
-  /* If screen is smaller than 1100px, prevents cards from taking whole screen */
-  width: 90%;
-  /* If screen is larger than 1100px, prevents it from looking too big */
-  max-width: 1100px;
-  margin: 40px auto;
-  /* Extra space at bottom of page, no ubrupt ending right after content */
-  padding-bottom: 5px; 
-  background: transparent;
-  box-shadow: none;
-}
-
 .header-inner {
   display: flex;
   justify-content: space-between;
@@ -69,4 +56,21 @@ Affects all pages because all the pages render inside AppLayout.
 
 .icon-button:hover svg {
   color: #0F172A;
+}
+
+.logo:hover {
+  cursor: pointer;
+} 
+
+/* Center feed container */
+.feed-container {
+  /* If screen is smaller than 1100px, prevents cards from taking whole screen */
+  width: 90%;
+  /* If screen is larger than 1100px, prevents it from looking too big */
+  max-width: 1100px;
+  margin: 40px auto;
+  /* Extra space at bottom of page, no ubrupt ending right after content */
+  padding-bottom: 5px; 
+  background: transparent;
+  box-shadow: none;
 }
