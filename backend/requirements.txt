@@ -1,0 +1,6 @@
+django>=5.0,<5.1
+djangorestframework
+django-cors-headers
+psycopg[binary]
+django-cors-headers
+djangorestframework

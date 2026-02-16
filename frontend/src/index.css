@@ -1,0 +1,32 @@
+/*
+GLOBAL BASE STYLES
+
+Applies to the entire site.
+
+Used for:
+- Browser reset (margin, box sizing)
+- Global fonts
+- Body background + base text color
+- Root layout height
+
+Feel free to override on individual pages, this just sets the global standard for the site
+*/
+
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  background: #F4F6FA;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+  overflow-x: hidden;
+}
+
