@@ -27,9 +27,12 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+    # - "3000:3000" # Old
+      - "5173:5173"   #Changed from 3000
     stdin_open: true
     tty: true
+    # Added this new command line below:
+    command: npm run dev -- --host 0.0.0.0
     environment:
       - WDS_SOCKET_PORT=0
 
