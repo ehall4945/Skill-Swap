@@ -17,6 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.http import JsonResponse
+from rest_framework_simplejwt.views import TokenRefreshView
+
+from .views import (
+    CustomTokenObtainPairView,
+    register_view,
+    current_user_view,
+    update_user_view,
+)
 
 def home_view(request):
     return JsonResponse({"status": "Skill-Swap Backend is Online"})
@@ -24,8 +32,19 @@ def home_view(request):
 def test_api(request):
     return JsonResponse({"message": "Hello from Django! SkillSwap is ready."})
 
+app_name = 'core'
+
 urlpatterns = [
     path('', home_view),
     path('admin/', admin.site.urls),
     path('api/test/', test_api),
+
+    # Authentication endpoints
+    path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/register/', register_view, name='register'),
+
+    # User endpoints
+    path('api/auth/me/', current_user_view, name='current_user'),
+    path('api/auth/me/update/', update_user_view, name='update_user'),
 ]
