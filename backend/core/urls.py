@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 def home_view(request):
     return JsonResponse({"status": "Skill-Swap Backend is Online"})
@@ -24,8 +26,17 @@ def home_view(request):
 def test_api(request):
     return JsonResponse({"message": "Hello from Django! SkillSwap is ready."})
 
+def home_redirect(request):
+    # Redirect to React frontend login page
+    return redirect('http://localhost:3000/login')
+
+def login_view(request):
+    return JsonResponse({"message": "Login endpoint — use POST with username & password"})
+    
 urlpatterns = [
-    path('', home_view),
+    path('', home_redirect),
     path('admin/', admin.site.urls),
     path('api/test/', test_api),
+    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
