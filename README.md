@@ -65,3 +65,9 @@ Authentication & Security
 UI/UX
 1. Scoped Styling: Utilized CSS Modules to ensure styles are isolated to specific components (Login, Register, Home).
 2. Responsive Forms: Authentication forms include loading states, error handling, and field validation.
+
+The URL Map
+   Page            URL
+1. Dashboard       http://localhost:5173/
+2. Login Page      http://localhost:5173/login
+3. Register Page   http://localhost:5173/register

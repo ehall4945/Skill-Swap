@@ -5,6 +5,9 @@
   --clr-danger:         #dc2626;
   --clr-danger-bg:      #fef2f2;
   --clr-danger-border:  #fecaca;
+  --clr-success:        #059669;
+  --clr-success-bg:     #f0fdf4;
+  --clr-success-border: #bbf7d0;
   --clr-text:           #0f172a;
   --clr-text-muted:     #64748b;
   --clr-text-label:     #334155;
@@ -76,6 +79,29 @@
   color: var(--clr-danger);
   font-size: 0.875rem;
   line-height: 1.4;
+  font-weight: 500;
+}
+
+.successMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--clr-success-bg);
+  border: 1px solid var(--clr-success-border);
+  border-left: 3px solid var(--clr-success);
+  border-radius: var(--radius-md);
+  color: var(--clr-success);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .form {
