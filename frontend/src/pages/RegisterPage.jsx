@@ -151,7 +151,7 @@ export default function RegisterPage() {
         fields.email, fields.firstName, fields.lastName,
         fields.password, fields.confirmPassword,
       );
-      navigate('/');
+      navigate('/login', { state: { message: 'Account created successfully! Please log in.' } });
     } catch (err) {
       const d = err?.response?.data;
       setServerErr(d?.detail || d?.email?.[0] || d?.non_field_errors?.[0] || 'Registration failed. Please try again.');

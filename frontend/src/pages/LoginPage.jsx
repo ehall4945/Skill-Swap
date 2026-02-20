@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import authService from '../services/authService';
 import styles from './LoginPage.module.css';
 
@@ -29,6 +29,13 @@ const AlertIcon = () => (
   </svg>
 );
 
+const CheckIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
 function validate(email, password) {
   const e = {};
   if (!email.trim())                                   e.email    = 'Email is required.';
@@ -45,6 +52,8 @@ export default function LoginPage() {
   const [serverErr, setServerErr] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMsg = location.state?.message;
 
   const set  = k => e => setFields(f => ({ ...f, [k]: e.target.value }));
   const blur = k => () => setTouched(t => ({ ...t, [k]: true }));
@@ -77,6 +86,13 @@ export default function LoginPage() {
           <h1 className={styles.logo}>Skill<span className={styles.accent}>Swap</span></h1>
           <p className={styles.tagline}>Sign in to your account</p>
         </header>
+
+        {successMsg && !serverErr && (
+          <div className={styles.successMessage} role="status">
+            <CheckIcon />
+            <span>{successMsg}</span>
+          </div>
+        )}
 
         {serverErr && (
           <div role="alert" aria-live="assertive" className={styles.serverError}>
