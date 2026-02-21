@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import { SlidersHorizontal } from "lucide-react";
@@ -96,13 +97,27 @@ function MatchesSection() {
    DASHBOARD PAGE (MAIN EXPORT)
 ----------------------------- */
 function Dashboard() {
+  const [firstName, setFirstName] = useState("User");
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setFirstName(user.firstName || user.first_name || "User");
+      } catch (e) {
+        console.error("Error parsing user data", e);
+      }
+    }
+  }, []);
+
   return (
     <>
     {/* Banner at top of dashboard page */}
     <div className="dashboard-banner">
 
       <div className="banner-left">
-        <h1>Welcome back, [User's Name]</h1>
+        <h1>Welcome back, {firstName}</h1>
         <p>Ready to learn something new today?</p>
       </div>
 
