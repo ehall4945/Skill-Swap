@@ -1,0 +1,22 @@
+from rest_framework import serializers
+from .models import Profile
+
+class ProfileSerializer(serializers.ModelSerializer):
+    # This grabs the username from the linked User model
+    owner_name = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = Profile
+        fields = [
+            'id', 
+            'owner_name', 
+            'user', 
+            'headline', 
+            'experience_level', 
+            'bio', 
+            'location', 
+            'skills_offered', 
+            'skills_wanted'
+        ]
+        # We make 'user' read-only so it's handled by the backend logic, not the user input
+        read_only_fields = ['user']
