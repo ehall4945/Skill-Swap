@@ -2,8 +2,7 @@ from rest_framework import serializers
 from .models import Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
-    # This grabs the username from the linked User model
-    owner_name = serializers.ReadOnlyField(source='user.username')
+    owner_name = serializers.ReadOnlyField(source='user.email')
 
     class Meta:
         model = Profile

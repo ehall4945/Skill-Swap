@@ -1,42 +1,61 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import { SlidersHorizontal } from "lucide-react";
+import api from "../services/api";
 
 /* -----------------------------
    DISCOVER SECTION
 ----------------------------- */
 function DiscoverSection() {
+  // 1. Set up state to hold our skills from Django
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/skills/')
+      .then((response) => {
+       
+        console.log("Data from Django:", response.data);
+
+        const actualSkills = response.data.results ? response.data.results : response.data;
+        
+        setSkills(actualSkills);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching skills:", error);
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="section-card">
       <div className="discover">
         <header className="discover-header">
           <h2>Discover</h2>
-            {/* Filter icon, top right corner of the discover card */}
             <button className="icon-button">
                 <SlidersHorizontal size={20} strokeWidth={1.8}/>
             </button>
         </header>
 
         <section className="discover-feed">
-
-          <div className="skill-card">
-            <h3>React Tutoring</h3>
-            <p>Learn React basics in 2 sessions.</p>
-            <span className="skill-tag">Wants: Spanish Practice</span>
-          </div>
-
-          <div className="skill-card">
-              <h3>Spanish Tutoring</h3>
-              <p>Learn conversational Spanish with me!</p>
-              <span className="skill-tag">Wants: Cooking Lessons</span>
-          </div>
-
-          <div className="skill-card">
-              <h3>Guitar Lessons</h3>
-              <p>Want to learn guitar? Now hosting lessons!</p>
-              <span className="skill-tag">Wants: React Basics</span>
-          </div>
+          {/* 3. Loop through the data and render the cards dynamically */}
+          {loading ? (
+            <p>Loading real skills from the database...</p>
+          ) : skills.length === 0 ? (
+            <p>No skills found. Be the first to add one!</p>
+          ) : (
+            skills.map((skill) => (
+              <div className="skill-card" key={skill.id}>
+                <h3>{skill.title}</h3>
+                <p>{skill.description}</p>
+                {/* Notice how we use the custom owner_name field you built! */}
+                <span className="skill-tag">Offered by: {skill.owner_name}</span> 
+              </div>
+            ))
+          )}
           
           <div className="discover-more">
             Discover More
@@ -119,6 +138,22 @@ function Dashboard() {
       <div className="banner-left">
         <h1>Welcome back, {firstName}</h1>
         <p>Ready to learn something new today?</p>
+        {/* --- NEW PROFILE BUTTON --- */}
+        <Link 
+          to="/profile" 
+          style={{ 
+            display: "inline-block", 
+            marginTop: "15px", 
+            padding: "8px 16px", 
+            backgroundColor: "#fff", 
+            color: "#333", 
+            textDecoration: "none", 
+            borderRadius: "5px",
+            fontWeight: "bold"
+          }}
+        >
+          View My Profile
+        </Link>
       </div>
 
       <div className="banner-right">

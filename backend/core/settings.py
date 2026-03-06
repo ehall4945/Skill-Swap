@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'profiles',
+    'profiles.apps.ProfilesConfig',
     'rest_framework_simplejwt',
     'corsheaders',
     'core',
@@ -171,7 +171,7 @@ SIMPLE_JWT = {
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = os.getenv(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:3000,http://localhost:5173'
+    'http://localhost:3000,http://localhost:5173,http://localhost:5174'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
@@ -180,4 +180,5 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = {
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:5174",
 }
