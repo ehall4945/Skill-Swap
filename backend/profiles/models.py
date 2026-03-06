@@ -24,4 +24,4 @@ class Profile (models.Model):
     skills_wanted=models.TextField(blank=True, help_text="List the skills you are looking to learn")
 
     def __str__(self):
-        return f"(self.user.username) Profile"
+        return f"{self.user.username} Profile"
