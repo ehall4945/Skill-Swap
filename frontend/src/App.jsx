@@ -4,15 +4,15 @@ ROOT APP COMPONENT
 Responsible for:
 - Rendering global layout (AppLayout)
 - Rendering current page components
-
-Later this is where routing will live (for now it auto routes to home page).
 */
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from "./layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';import ProtectedRoute from './components/ProtectedRoute';
+import RegisterPage from './pages/RegisterPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import Profile from './pages/Profile'; // <-- 1. Import your new Profile page
 
 function App() {
   return (
@@ -29,6 +29,18 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <Dashboard />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* --- NEW PROFILE ROUTE --- */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Profile />
               </AppLayout>
             </ProtectedRoute>
           }

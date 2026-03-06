@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import { SlidersHorizontal } from "lucide-react";
@@ -137,6 +138,22 @@ function Dashboard() {
       <div className="banner-left">
         <h1>Welcome back, {firstName}</h1>
         <p>Ready to learn something new today?</p>
+        {/* --- NEW PROFILE BUTTON --- */}
+        <Link 
+          to="/profile" 
+          style={{ 
+            display: "inline-block", 
+            marginTop: "15px", 
+            padding: "8px 16px", 
+            backgroundColor: "#fff", 
+            color: "#333", 
+            textDecoration: "none", 
+            borderRadius: "5px",
+            fontWeight: "bold"
+          }}
+        >
+          View My Profile
+        </Link>
       </div>
 
       <div className="banner-right">

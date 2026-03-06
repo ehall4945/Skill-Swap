@@ -3,7 +3,7 @@ from .models import Skill
 
 class SkillSerializer(serializers.ModelSerializer):
 
-    owner_name = serializers.ReadOnlyField(source='user.username')
+    owner_name = serializers.ReadOnlyField(source='user.email')
 
     class Meta:
         model = Skill

@@ -6,11 +6,15 @@ class ProfileViewSet(viewsets.ModelViewSet):
     """
     ViewSet for viewing and editing user profiles.
     """
-    queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    
-    # Optional: Add permissions so only logged-in users can edit
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    # Highly recommended to uncomment this so random people can't edit profiles!
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        This restricts the list so a user ONLY sees their own profile.
+        """
+        return Profile.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         """
