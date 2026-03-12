@@ -2,10 +2,14 @@
 .section-card {
   background: white;
   border-radius: 14px;
-  padding: 28px;
+  padding: 32px;
   margin-top: 32px;
   margin-bottom: 50px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+.section-card h2 {
+  font-size: 28px;
 }
 
 /* -----------------------------
@@ -28,10 +32,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-}
-
-.discover-header h2 {
-  font-size: 32px;
 }
 
 .discover-feed {

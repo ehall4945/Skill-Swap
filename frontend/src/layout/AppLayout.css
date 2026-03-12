@@ -73,7 +73,7 @@ Affects all pages because all the pages render inside AppLayout.
   margin: 40px auto;
 
   /* Extra space at bottom of page, no ubrupt ending right after content */
-  padding-bottom: 50px; 
+  padding-bottom: 60px; 
   
   background: transparent;
   box-shadow: none;
