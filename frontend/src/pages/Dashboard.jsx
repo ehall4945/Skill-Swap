@@ -64,31 +64,41 @@ function Dashboard() {
 
   return (
     <>
-      <div className="dashboard-banner">
-        <div className="banner-left">
-          <h1>Welcome back, {firstName}</h1>
-          <p>Ready to learn something new today?</p>
+      {/* dashboard-section div is so content loads with animation */}
+      <div className="dashboard-section">
+        <div className="dashboard-banner">
+          <div className="banner-left">
+            <h1>Welcome back, {firstName}</h1>
+            <p>Ready to learn something new today?</p>
 
-          <Link to="/profile" className="dashboard-profile-link">
-            View My Profile
-          </Link>
-        </div>
-
-        <div className="banner-right">
-          <div className="banner-stat">
-            <span className="stat-number">[#]</span>
-            <span className="stat-label">New Matches</span>
+            <Link to="/profile" className="dashboard-profile-link">
+              View My Profile
+            </Link>
           </div>
 
-          <div className="banner-stat">
-            <span className="stat-number">[#]</span>
-            <span className="stat-label">Messages</span>
+          <div className="banner-right">
+            <div className="banner-stat">
+              <span className="stat-number">[#]</span>
+              <span className="stat-label">New Matches</span>
+            </div>
+
+            <div className="banner-stat">
+              <span className="stat-number">[#]</span>
+              <span className="stat-label">Messages</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <MatchesSection />
-      <DiscoverSection />
+      {/* dashboard-section div is so content loads with animation */}
+      <div className="dashboard-section">
+        <MatchesSection /> 
+      </div>
+
+      {/* dashboard-section div is so content loads with animation */}
+      <div className="dashboard-section">
+        <DiscoverSection />     
+      </div>
     </>
   );
 }
