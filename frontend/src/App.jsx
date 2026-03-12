@@ -13,44 +13,45 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './pages/Profile'; // <-- 1. Import your new Profile page
+import DiscoverTest from "./pages/DiscoverTest";
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        {/* 1. Public Routes: No Sidebar/Navbar needed here */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-
-        {/* 2. Protected Routes: Wrapped in AppLayout and ProtectedRoute */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <Dashboard />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* --- NEW PROFILE ROUTE --- */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <Profile />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 3. Fallback: Redirect anything else to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
-  );
+  return <DiscoverTest />;
 }
 
 export default App;
+
+/*
+<Router>
+<Routes>
+
+  <Route path="/login" element={<LoginPage />} />
+  <Route path="/register" element={<RegisterPage />} />
+
+  <Route
+    path="/"
+    element={
+      <ProtectedRoute>
+        <AppLayout>
+          <Dashboard />
+        </AppLayout>
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/profile"
+    element={
+      <ProtectedRoute>
+        <AppLayout>
+          <Profile />
+        </AppLayout>
+      </ProtectedRoute>
+    }
+  />
+
+  <Route path="*" element={<Navigate to="/" replace />} />
+
+</Routes>
+</Router>
+*/

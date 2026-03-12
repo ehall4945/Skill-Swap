@@ -4,6 +4,7 @@ import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import { SlidersHorizontal } from "lucide-react";
 import api from "../services/api";
+import Discover from "../components/DiscoverSection";
 
 /* -----------------------------
    DISCOVER SECTION
