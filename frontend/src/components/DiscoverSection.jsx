@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X, Ellipsis } from "lucide-react";
+import { Check, X, Ellipsis, Info } from "lucide-react";
 import demoProfile from "../images/demo-profile.png";
 import "./DiscoverSection.css";
 
@@ -10,7 +10,7 @@ const INITIAL_PROFILES = [
     id: 1,
     name: "Kevin",
     pronouns: "He/Him/His",
-    headline: "Film Student at the University of Wisconsin - Milwaukee",
+    headline: "Film Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Film Tutor",
     seeking: "Spanish Tutor",
@@ -21,7 +21,7 @@ const INITIAL_PROFILES = [
     id: 2,
     name: "Anna",
     pronouns: "She/Her/Hers",
-    headline: "Spanish Tutor at the University of Wisconsin - Milwaukee",
+    headline: "Spanish Tutor at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Spanish Tutor",
     seeking: "JavaScript Help",
@@ -32,7 +32,7 @@ const INITIAL_PROFILES = [
     id: 3,
     name: "Mike",
     pronouns: "He/Him/His",
-    headline: "Music Student at the University of Wisconsin - Milwaukee",
+    headline: "Music Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Guitar Teacher",
     seeking: "Photography Tips",
@@ -44,7 +44,7 @@ const INITIAL_PROFILES = [
     name: "Sara",
     pronouns: "She/Her/Hers",
     headline:
-      "Computer Science Student at the University of Wisconsin - Milwaukee",
+      "Computer Science Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Python Tutor",
     seeking: "Public Speaking Help",
@@ -55,7 +55,7 @@ const INITIAL_PROFILES = [
     id: 5,
     name: "Jordan",
     pronouns: "They/Them",
-    headline: "Design Student at the University of Wisconsin - Milwaukee",
+    headline: "Design Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "UI Design Tutor",
     seeking: "React Mentor",
@@ -66,7 +66,7 @@ const INITIAL_PROFILES = [
     id: 6,
     name: "Lila",
     pronouns: "She/Her/Hers",
-    headline: "Business Student at the University of Wisconsin - Milwaukee",
+    headline: "Business Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Marketing Tutor",
     seeking: "Excel Help",
@@ -77,7 +77,7 @@ const INITIAL_PROFILES = [
     id: 7,
     name: "Omar",
     pronouns: "He/Him/His",
-    headline: "Engineering Student at the University of Wisconsin - Milwaukee",
+    headline: "Engineering Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "CAD Tutor",
     seeking: "Resume Help",
@@ -88,7 +88,7 @@ const INITIAL_PROFILES = [
     id: 8,
     name: "Nina",
     pronouns: "She/Her/Hers",
-    headline: "Education Student at the University of Wisconsin - Milwaukee",
+    headline: "Education Student at UW-Milwaukee",
     location: "Milwaukee, Wisconsin",
     teaches: "Writing Tutor",
     seeking: "Statistics Help",
@@ -163,6 +163,7 @@ function getNextProfile(queue, usedIds) {
 */
 function ProfileCard({ profile, onDecision, disabled }) {
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   const accentClass =
     profile.accent === "blue"
@@ -179,111 +180,181 @@ function ProfileCard({ profile, onDecision, disabled }) {
   };
 
   return (
-    <motion.article
-      layout="position"
-      initial={profile.isIncoming ? { opacity: 0, x: 90 } : false}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -40 }}
-      transition={{
-        layout: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
-        x: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
-        opacity: { duration: 0.2, ease: "easeOut" },
+  <motion.article
+    layout="position"
+    initial={profile.isIncoming ? { opacity: 0, x: 90 } : false}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -40 }}
+    transition={{
+      layout: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+      x: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
+      opacity: { duration: 0.2, ease: "easeOut" },
+    }}
+    className="discover-card"
+  >
+    <button
+      type="button"
+      className="discover-card__info-btn"
+      aria-label={
+        isFlipped
+          ? `Show summary for ${profile.name}`
+          : `Show more info for ${profile.name}`
+      }
+      onClick={() => {
+        setShowMobileActions(false);
+        setIsFlipped((prev) => !prev);
       }}
-      className="discover-card"
+      disabled={disabled}
     >
-      <div className="discover-card__image-wrap">
-        <div className={`discover-card__image-frame ${accentClass}`}>
-          <img
-            src={profile.image}
-            alt={`${profile.name} profile`}
-            className="discover-card__image"
-          />
+      <Info size={16} strokeWidth={2.4} />
+    </button>
+
+    <motion.div
+      className="discover-card__flip-shell"
+      animate={{ rotateY: isFlipped ? 180 : 0 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      style={{ transformStyle: "preserve-3d" }}
+    >
+      <div className="discover-card__face discover-card__face--front">
+        <div className="discover-card__image-wrap">
+          <div className={`discover-card__image-frame ${accentClass}`}>
+            <img
+              src={profile.image}
+              alt={`${profile.name} profile`}
+              className="discover-card__image"
+            />
+          </div>
+        </div>
+
+        <div className="discover-card__content">
+          <div className="discover-card__name-row">
+            <h3 className="discover-card__name">{profile.name}</h3>
+            <span className="discover-card__pronouns">({profile.pronouns})</span>
+          </div>
+
+          <p className="discover-card__headline">{profile.headline}</p>
+          <p className="discover-card__location">{profile.location}</p>
+
+          <div className="discover-card__skills">
+            <p className="discover-card__skill-line">{profile.teaches}</p>
+            <p className="discover-card__skill-line">
+              Seeking {profile.seeking}
+            </p>
+          </div>
+        </div>
+
+        <div className="discover-card__desktop-actions">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onDecision(profile.runtimeId, "pass")}
+            className="discover-card__action-btn discover-card__action-btn--pass"
+          >
+            <X size={16} strokeWidth={2.5} />
+            <span>Pass</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onDecision(profile.runtimeId, "like")}
+            className="discover-card__action-btn discover-card__action-btn--yes"
+          >
+            <Check size={16} strokeWidth={2.5} />
+            <span>Yes</span>
+          </button>
+        </div>
+
+        <div className="discover-card__mobile-menu-wrap">
+          <button
+            type="button"
+            aria-label={`More options for ${profile.name}`}
+            className="discover-card__more-btn"
+            onClick={() => setShowMobileActions((prev) => !prev)}
+            disabled={disabled}
+          >
+            <Ellipsis size={18} strokeWidth={2.25} />
+          </button>
+
+          <AnimatePresence>
+            {showMobileActions && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="discover-card__mobile-actions-popup"
+              >
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => handleAction("pass")}
+                  className="discover-card__action-btn discover-card__action-btn--pass"
+                >
+                  <X size={16} strokeWidth={2.5} />
+                  <span>Pass</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => handleAction("like")}
+                  className="discover-card__action-btn discover-card__action-btn--yes"
+                >
+                  <Check size={16} strokeWidth={2.5} />
+                  <span>Yes</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="discover-card__content">
-        <div className="discover-card__name-row">
-          <h3 className="discover-card__name">{profile.name}</h3>
-          <span className="discover-card__pronouns">({profile.pronouns})</span>
+      <div className="discover-card__face discover-card__face--back">
+        <div className="discover-card__back-header">
+          <h4 className="discover-card__back-title">More about {profile.name}</h4>
+          <p className="discover-card__back-subtitle">{profile.location}</p>
         </div>
 
-        <p className="discover-card__headline">{profile.headline}</p>
-        <p className="discover-card__location">{profile.location}</p>
-
-        <div className="discover-card__skills">
-          <p className="discover-card__skill-line">{profile.teaches}</p>
-          <p className="discover-card__skill-line">
-            Seeking {profile.seeking}
+        <div className="discover-card__back-section">
+          <h5 className="discover-card__back-label">About</h5>
+          <p className="discover-card__back-text">
+            {profile.name} is a {profile.headline.toLowerCase()} who can help
+            with {profile.teaches.toLowerCase()} and is currently looking for{" "}
+            {profile.seeking.toLowerCase()}.
           </p>
         </div>
-      </div>
 
-      <div className="discover-card__desktop-actions">
+        <div className="discover-card__back-section">
+          <h5 className="discover-card__back-label">Can help with</h5>
+          <p className="discover-card__back-text">{profile.teaches}</p>
+        </div>
+
+        <div className="discover-card__back-section">
+          <h5 className="discover-card__back-label">Currently seeking</h5>
+          <p className="discover-card__back-text">{profile.seeking}</p>
+        </div>
+
+        <div className="discover-card__back-section">
+          <h5 className="discover-card__back-label">Quick details</h5>
+          <ul className="discover-card__back-list">
+            <li>{profile.pronouns}</li>
+            <li>{profile.location}</li>
+            <li>Open to skill exchange</li>
+          </ul>
+        </div>
+
         <button
           type="button"
+          className="discover-card__back-btn"
+          onClick={() => setIsFlipped(false)}
           disabled={disabled}
-          onClick={() => onDecision(profile.runtimeId, "pass")}
-          className="discover-card__action-btn discover-card__action-btn--pass"
         >
-          <X size={16} strokeWidth={2.5} />
-          <span>Pass</span>
-        </button>
-
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onDecision(profile.runtimeId, "like")}
-          className="discover-card__action-btn discover-card__action-btn--yes"
-        >
-          <Check size={16} strokeWidth={2.5} />
-          <span>Yes</span>
+          Back to card
         </button>
       </div>
-
-      <div className="discover-card__mobile-menu-wrap">
-        <button
-          type="button"
-          aria-label={`More options for ${profile.name}`}
-          className="discover-card__more-btn"
-          onClick={() => setShowMobileActions((prev) => !prev)}
-          disabled={disabled}
-        >
-          <Ellipsis size={18} strokeWidth={2.25} />
-        </button>
-
-        <AnimatePresence>
-          {showMobileActions && (
-            <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.96 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="discover-card__mobile-actions-popup"
-            >
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => handleAction("pass")}
-                className="discover-card__action-btn discover-card__action-btn--pass"
-              >
-                <X size={16} strokeWidth={2.5} />
-                <span>Pass</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => handleAction("like")}
-                className="discover-card__action-btn discover-card__action-btn--yes"
-              >
-                <Check size={16} strokeWidth={2.5} />
-                <span>Yes</span>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.article>
+    </motion.div>
+  </motion.article>
   );
 }
 
@@ -411,12 +482,13 @@ export default function DiscoverSection() {
         </AnimatePresence>
       </div>
 
-      <motion.div layout className="discover-grid">
-        <AnimatePresence
-          initial={false}
-          mode="popLayout"
-          onExitComplete={handleExitComplete}
-        >
+      <div className="discover-cards-box">
+        <motion.div layout className="discover-grid">
+          <AnimatePresence
+            initial={false}
+            mode="popLayout"
+            onExitComplete={handleExitComplete}
+          >
           {visibleProfiles.slice(0, displayCount).map((profile) => (
             <ProfileCard
               key={profile.runtimeId}
@@ -425,8 +497,9 @@ export default function DiscoverSection() {
               disabled={Boolean(busyCardId)}
             />
           ))}
-        </AnimatePresence>
-      </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </section>
   );
 }

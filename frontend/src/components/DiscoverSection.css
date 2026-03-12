@@ -1,10 +1,18 @@
 .discover-section {
   width: 100%;
+  background: #ffffff;
+  border: 1px solid #e4e4e4;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.discover-cards-box {
   background: #ececec;
   border: 1px solid #e4e4e4;
-  padding: 18px 18px 14px;
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 14px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .discover-section__header {
@@ -52,9 +60,11 @@
   position: relative;
   background: #ffffff;
   border: 1px solid #ececec;
-  padding: 16px 16px 14px;
+  border-radius: 16px;
   min-height: 445px;
   box-sizing: border-box;
+  perspective: 1400px;
+  overflow: hidden;
 }
 
 .discover-card__image-wrap {
@@ -65,8 +75,8 @@
 }
 
 .discover-card__image-frame {
-  width: 170px;
-  height: 170px;
+  width: 185px;
+  height: 185px;
   border-radius: 50%;
   border: 4px solid #c9b0ef;
   overflow: hidden;
@@ -93,7 +103,8 @@
 }
 
 .discover-card__content {
-  padding-right: 0;
+  padding-right: 36px;
+  padding-top: 16px;
 }
 
 .discover-card__name-row {
@@ -106,8 +117,8 @@
 
 .discover-card__name {
   margin: 0;
-  font-size: 18px;
-  line-height: 1.1;
+  font-size: 20px;
+  line-height: 1.15;
   font-weight: 700;
   color: #2b2b2b;
 }
@@ -120,9 +131,9 @@
 }
 
 .discover-card__headline {
-  margin: 0 0 6px;
-  font-size: 12px;
-  line-height: 1.35;
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.4;
   font-weight: 500;
   color: #525252;
 }
@@ -136,13 +147,13 @@
 }
 
 .discover-card__skills {
-  margin-top: 6px;
+  margin-top: 10px;
 }
 
 .discover-card__skill-line {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.25;
+  margin: 2px 0;
+  font-size: 14px;
+  line-height: 1.3;
   color: #2f2f2f;
   font-weight: 700;
 }
@@ -151,7 +162,7 @@
 .discover-card__desktop-actions {
   display: flex;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: auto;
 }
 
 .discover-card__action-btn {
@@ -263,6 +274,7 @@
   }
 }
 
+/* Mobile section */
 @media (max-width: 760px) {
   .discover-section {
     padding: 14px;
@@ -278,8 +290,7 @@
   }
 
   .discover-card {
-    min-height: auto;
-    padding-bottom: 72px;
+    min-height: 430px;
     max-width: 460px;
     width: 100%;
     margin: 0 auto;
@@ -292,4 +303,151 @@
   .discover-card__mobile-menu-wrap {
     display: block;
   }
+
+  .discover-card__flip-shell {
+    min-height: 430px;
+  }
+}
+
+.discover-card__info-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e8e8e8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6e7c90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  z-index: 8;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__info-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fafafa;
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+}
+
+.discover-card__info-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.discover-card__flip-shell {
+  position: relative;
+  width: 100%;
+  min-height: 445px;
+  transform-style: preserve-3d;
+}
+
+.discover-card__face {
+  position: absolute;
+  inset: 0;
+  padding: 22px 20px 18px;
+  box-sizing: border-box;
+  background: #ffffff;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.discover-card__face--front {
+  z-index: 2;
+}
+
+.discover-card__face--back {
+  transform: rotateY(180deg);
+}
+
+.discover-card__back-header {
+  margin-bottom: 14px;
+}
+
+.discover-card__back-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.discover-card__back-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #8f8f8f;
+  font-weight: 500;
+}
+
+.discover-card__back-section {
+  margin-bottom: 14px;
+}
+
+.discover-card__back-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #6a6a6a;
+}
+
+.discover-card__back-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3a3a3a;
+}
+
+.discover-card__back-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3a3a3a;
+}
+
+.discover-card__back-list li + li {
+  margin-top: 4px;
+}
+
+.discover-card__back-btn {
+  margin-top: auto;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #d9dfea;
+  background: #f5f7fb;
+  color: #44536a;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__back-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #edf2f8;
+}
+
+.discover-card__back-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
