@@ -46,10 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'core.apps.CoreConfig',
     'profiles',
     'rest_framework_simplejwt',
     'corsheaders',
-    'core',
+    'channels',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -82,7 +84,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-
+ASGI_APPLICATION = 'core.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -191,3 +193,13 @@ if 'test' in sys.argv:
             'NAME': ':memory:',
         }
     }
+
+# Channel Layers Configuration for WebSockets
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)],  # change 'redis' to '127.0.0.1' if not using Docker
+        },
+    },
+}
