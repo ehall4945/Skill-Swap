@@ -67,10 +67,10 @@ Affects all pages because all the pages render inside AppLayout.
   /* If screen is smaller than 1100px, prevents cards from taking whole screen */
   width: 90%;
   /* If screen is larger than 1100px, prevents it from looking too big */
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 40px auto;
   /* Extra space at bottom of page, no ubrupt ending right after content */
-  padding-bottom: 5px; 
+  padding-bottom: 40px; 
   background: transparent;
   box-shadow: none;
 }

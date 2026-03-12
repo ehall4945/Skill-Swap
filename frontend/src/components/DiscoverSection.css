@@ -2,16 +2,20 @@
   width: 100%;
   background: #ffffff;
   border: 1px solid #e4e4e4;
-  padding: 18px;
+  border-radius: 16px;
+  padding: 32px;
   box-sizing: border-box;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+
 }
 
 .discover-cards-box {
   background: #ececec;
   border: 1px solid #e4e4e4;
   border-radius: 12px;
-  padding: 22px;
-  margin-top: 14px;
+  padding: 28px;
+  margin-top: 22px;
+  margin-bottom: 12px;
   box-sizing: border-box;
 }
 
@@ -52,7 +56,7 @@
 .discover-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 22px;
   overflow: hidden;
 }
 
@@ -103,8 +107,8 @@
 }
 
 .discover-card__content {
-  padding-right: 36px;
-  padding-top: 16px;
+  /* padding-right: 36px; */
+  padding-top: 14px;
 }
 
 .discover-card__name-row {

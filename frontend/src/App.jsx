@@ -13,45 +13,40 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './pages/Profile'; // <-- 1. Import your new Profile page
-import DiscoverTest from "./pages/DiscoverTest";
 
 function App() {
-  return <DiscoverTest />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Profile />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;
-
-/*
-<Router>
-<Routes>
-
-  <Route path="/login" element={<LoginPage />} />
-  <Route path="/register" element={<RegisterPage />} />
-
-  <Route
-    path="/"
-    element={
-      <ProtectedRoute>
-        <AppLayout>
-          <Dashboard />
-        </AppLayout>
-      </ProtectedRoute>
-    }
-  />
-
-  <Route
-    path="/profile"
-    element={
-      <ProtectedRoute>
-        <AppLayout>
-          <Profile />
-        </AppLayout>
-      </ProtectedRoute>
-    }
-  />
-
-  <Route path="*" element={<Navigate to="/" replace />} />
-
-</Routes>
-</Router>
-*/
