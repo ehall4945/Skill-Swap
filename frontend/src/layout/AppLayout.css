@@ -1,76 +1,325 @@
+
 /*
 APP SHELL STYLES
 
 Controls:
 - App max width
-- Centering on screen
+- Centering on screen 
 - Main layout spacing
 - Heading and icons styling
 
 Affects all pages because all the pages render inside AppLayout.
 */
 
+/* main layout */
 .app-layout {
-  min-height: 100vh;
-  width: 100%;
-  background: #F4F6FA;
+  height: 100vh;
+  background: #f4f6fa;
+  display: grid; 
+  grid-template-columns: 260px 1fr; 
+  overflow: hidden;
 }
 
-/* Sticky header for now, can change later */
-.app-header {
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* sidebar */
+.sidebar{
+  background: #ffffff;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
   position: sticky;
   top: 0;
-  background: white;
-  border-bottom: 1px solid #E5E7EB;
-  padding: 20px 32px;
-  z-index: 10;
+  height: 100vh;
+  z-index: 11;
+  overflow: hidden;
 }
 
-.header-inner {
+.sidebar-brand {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  padding: 6px 10px 14px; 
 }
 
-.header-icons {
+.brand-mark {
+  display:none;
+}
+
+.brand-logo {
+  display:block;
+  height: 22px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-name {
+  display:none;
+}
+
+.sidebar-nav {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
 }
 
-.icon-button {
-  background: transparent;
+.sidebar-item {
+  text-decoration: none;
+  color: #0F172A;
+  display: grid;
+  grid-template-columns: 28px 1fr 16px;
+  align-items: center;
+  gap: 10px; 
+  padding: 10px 12px;
+  border-radius: 999px;
+  transition: 0.15s;
+}
+
+.sidebar-item:hover{
+  background: #EEF2FF; 
+}
+
+.sidebar-item.active{
+  background: #A78BFA;
+  color: #1F1147;
+}
+
+.sidebar-bottom{
+  margin-top: auto;
+  padding: 10px 8px;
+}
+
+.logout-link{
+  appearance: none;
   border: none;
-  padding: 6px;
+  background: transparent;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #111827;
+}
+
+.logout-link:hover{
+  background: #F1F5F9;
+}
+
+/* Header */
+.main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header{
+  position: sticky; 
+  top: 0;
+  z-index: 10; 
+  padding: 16px 24px 10px 24px; 
+  background: linear-gradient(180deg, rgba(226,232,240,0.25), transparent);
+}
+
+.header-bar{
+  background: var(--bg);
+  border: 1px solid #E5E7EB;
+  border-radius: var(--header-radius); 
+  box-shadow: 0 1px 2px rgba(16,24,40,0.06);
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0; 
+  position: relative;
+  left: 0;
+  width: 100%;
+}
+
+.header-bar-inner{
+  width: var(--content-width);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-actions{
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hello{
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A; 
+}
+
+.avatar{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #D9D6FE;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #3B2FA3;
+}
+
+.icon-button,
+.avatar-button{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  padding: 0;
   cursor: pointer;
+  line-height: 0;
 }
 
-.icon-button svg {
-  width: 26px;
-  height: 26px;
-  color: #334155; /* Starts lighter, so when hovered over it gets a bit darker */
-  transition: all 0.15s ease;
+.icon-button svg{
+  display: block;
+  width: 22px;
+  height: 22px;
+  position: relative;
+  top: 0.5px; 
 }
 
-.icon-button:hover svg {
+:root{
+  --sidebar-width: 260px;
+  --content-width: 90%;
+  --content-max: 1100px;
+  --header-pad-top: 18px;
+  --header-pad-bottom: 10px;
+  --header-radius: 12px;
+  --card-radius: 12px;
+  --border: #E5E7EB;
+  --bg: #FFFFFF;
+}
+
+/* Profile dropdown */
+.profile-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(16,24,40,0.12), 0 2px 4px rgba(16,24,40,0.06);
+  width: 240px;
+  padding: 8px;
+  z-index: 1000;
+}
+
+.profile-menu-item {
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: center;
   color: #0F172A;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
 }
 
-.logo:hover {
-  cursor: pointer;
-} 
+.profile-menu-header {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #F1F5F9;
+  margin-bottom: 8px;
+}
+
+.profile-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #D9D6FE;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #3B2FA3;
+}
+
+.profile-meta {
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-username {
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-item:hover {
+  background: #F3F4F6;
+}
+
+.profile-menu-item.danger {
+  color: #B91C1C;
+}
+
+.profile-menu-item.danger:hover {
+  background: #FEF2F2;
+}
 
 /* Center feed container */
+.content{
+  padding: 12px 24px 40px 24px;
+  overflow: auto;
+  min-height: unset;
+}
+
+.canvas{
+  background: #ffffff;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  min-height: auto;
+  padding: 24px 0; 
+}
+
 .feed-container {
   /* If screen is smaller than 1100px, prevents cards from taking whole screen */
   width: 90%;
   /* If screen is larger than 1100px, prevents it from looking too big */
   max-width: 1100px;
-  margin: 40px auto;
+  margin: 0 auto;
   /* Extra space at bottom of page, no ubrupt ending right after content */
-  padding-bottom: 5px; 
+  padding-bottom: 20px; 
   background: transparent;
   box-shadow: none;
 }
