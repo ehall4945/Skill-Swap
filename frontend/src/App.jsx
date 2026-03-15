@@ -1,3 +1,11 @@
+/*
+ROOT APP COMPONENT
+
+Responsible for:
+- Rendering global layout (AppLayout)
+- Rendering current page components
+*/
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from "./layout/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -6,6 +14,7 @@ import RegisterPage from './pages/RegisterPage';
 import ChatApp from './components/ChatApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -33,6 +42,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <ChatApp />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Profile />
+                </AppLayout>
               </ProtectedRoute>
             }
           />
