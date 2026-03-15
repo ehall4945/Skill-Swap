@@ -1,4 +1,5 @@
 // frontend/src/components/ChatApp.jsx
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -267,6 +268,9 @@ export default function ChatApp() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [showModal,          setShowModal]          = useState(false);
 
+  const navigate = useNavigate();
+
+
   useEffect(() => {
     fetchConversations().then(data => setConversations(data.results ?? data));
   }, []);
@@ -312,7 +316,7 @@ export default function ChatApp() {
         <div className="ca-sidebar__footer">
           <Avatar name={user?.email} size={32} />
           <span className="ca-sidebar__user-email">{user?.email}</span>
-          <button className="ca-icon-btn ca-logout-btn" onClick={logout} title="Sign out">
+          <button className="ca-icon-btn ca-logout-btn" onClick={() => { logout(); navigate('/login'); }} title="Sign out">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
