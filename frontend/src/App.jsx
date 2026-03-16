@@ -18,11 +18,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* 1. Public Routes: No Sidebar/Navbar needed here */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* 2. Protected Routes: Wrapped in AppLayout and ProtectedRoute */}
         <Route
           path="/"
           element={
@@ -34,7 +32,6 @@ function App() {
           }
         />
 
-        {/* --- NEW PROFILE ROUTE --- */}
         <Route
           path="/profile"
           element={
@@ -46,7 +43,6 @@ function App() {
           }
         />
 
-        {/* 3. Fallback: Redirect anything else to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

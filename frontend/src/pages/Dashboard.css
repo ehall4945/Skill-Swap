@@ -1,10 +1,15 @@
 /* Section cards on the page (Discover, Your Matches, etc.) */
 .section-card {
   background: white;
-  border-radius: 20px;
+  border-radius: 14px;
   padding: 32px;
+  margin-top: 32px;
   margin-bottom: 50px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+}
+
+.section-card h2 {
+  font-size: 28px;
 }
 
 /* -----------------------------
@@ -29,14 +34,69 @@
   margin-bottom: 24px;
 }
 
-.discover-header h2 {
-  font-size: 32px;
-}
-
 .discover-feed {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.matches-header {
+  margin-bottom: 8px;
+}
+
+.matches-row {
+  display: flex;
+  gap: 18px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding-top: 18px;
+  padding-bottom: 18px;
+
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar by default */
+.matches-row::-webkit-scrollbar {
+  height: 7px;
+  opacity: 0;
+}
+
+/* Scrollbar Track */
+.matches-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Scrollbar Thumb */
+.matches-row::-webkit-scrollbar-thumb {
+  background: #CBD5F5;
+  border-radius: 6px;
+}
+
+.match-pill {
+  min-width: 220px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+.match-pill:hover {
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.match-pill strong {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.match-pill span {
+  opacity: 0.9;
 }
 
 /* -------------------------------
@@ -140,4 +200,78 @@
 .stat-label {
   font-size: 12px;
   color: #64748B;
+}
+
+/* ------------------------ 
+    VIEW MY PROFILE BUTTON
+--------------------------- */
+.dashboard-profile-link {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  color: #333333;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.dashboard-profile-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 900px) {
+  .dashboard-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 36px 28px;
+  }
+
+  .banner-right {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .section-card {
+    padding: 22px;
+  }
+
+  .discover-header h2 {
+    font-size: 26px;
+  }
+
+  .banner-left h1 {
+    font-size: 24px;
+  }
+}
+
+/* ----------------------------------
+    Content Animation on Page Start
+------------------------------------*/
+/* Page load animation */
+.dashboard-section {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: dashboardFade 0.6s ease forwards;
+}
+
+.dashboard-section:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.dashboard-section:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+@keyframes dashboardFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
