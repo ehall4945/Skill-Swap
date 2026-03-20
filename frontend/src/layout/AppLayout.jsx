@@ -12,7 +12,7 @@ All pages render inside this component.
 */
 
 import "./AppLayout.css";
-import Logo from "../assets/logo.png";
+import skillswap from '../images/Skillswap.png'; 
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
 import authService from "../services/authService"; 
@@ -112,7 +112,7 @@ function AppLayout({ children }) {
             {/* left sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-brand">
-                    <img src={Logo} alt="SkillSwap Logo" className="brand-logo" />
+                    <img src={skillswap} alt="SkillSwap Logo" className="brand-logo" />
                 </div>
 
                 <nav className="sidebar-nav" aria-label="Primary">

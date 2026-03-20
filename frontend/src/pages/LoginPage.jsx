@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import authService from '../services/authService';
 import styles from './LoginPage.module.css';
+import background from '../images/background.png';
+import skillswap from '../images/Skillswap.png'; 
 
 const EyeOpen = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -57,7 +59,7 @@ export default function LoginPage() {
 
   const set  = k => e => setFields(f => ({ ...f, [k]: e.target.value }));
   const blur = k => () => setTouched(t => ({ ...t, [k]: true }));
-
+  
   const errors   = validate(fields.email, fields.password);
   const hasError = k => touched[k] && errors[k];
 
@@ -79,87 +81,101 @@ export default function LoginPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.card}>
+    <main className={styles.shell}>
+      {/* left side */}
+      <section className={styles.left}>
+        <img src={skillswap} alt="SkillSwap logo" className={styles.leftLogo}/>
+        <div className={styles.group}>
+          <img src={background} alt="Illustration of people exchanging skills" className={styles.background} />
+          <h2 className={styles.leftTitle}>
+            A peer-to-peer platform for <br />
+            <span>skill sharing</span> without monetary barriers. 
+          </h2>
+        </div>
+      </section>
 
-        <header className={styles.header}>
-          <h1 className={styles.logo}>Skill<span className={styles.accent}>Swap</span></h1>
-          <p className={styles.tagline}>Sign in to your account</p>
-        </header>
-
-        {successMsg && !serverErr && (
-          <div className={styles.successMessage} role="status">
-            <CheckIcon />
-            <span>{successMsg}</span>
-          </div>
-        )}
-
-        {serverErr && (
-          <div role="alert" aria-live="assertive" className={styles.serverError}>
-            <AlertIcon /><span>{serverErr}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate className={styles.form}>
-
-          <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>Email address</label>
-            <input
-              id="email" type="email" autoComplete="email" placeholder="you@uwm.edu"
-              value={fields.email} onChange={set('email')} onBlur={blur('email')}
-              aria-required="true" aria-invalid={!!hasError('email')}
-              aria-describedby={hasError('email') ? 'email-err' : undefined}
-              className={`${styles.input} ${hasError('email') ? styles.inputInvalid : ''}`}
-            />
-            {hasError('email') && (
-              <p id="email-err" role="alert" className={styles.fieldError}>
-                <AlertIcon />{errors.email}
-              </p>
-            )}
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>Password</label>
-            <div className={styles.pwWrap}>
-              <input
-                id="password" type={showPw ? 'text' : 'password'}
-                autoComplete="current-password" placeholder="••••••••"
-                value={fields.password} onChange={set('password')} onBlur={blur('password')}
-                aria-required="true" aria-invalid={!!hasError('password')}
-                aria-describedby={hasError('password') ? 'pw-err' : undefined}
-                className={`${styles.input} ${styles.inputPw} ${hasError('password') ? styles.inputInvalid : ''}`}
-              />
-              <button type="button" onClick={() => setShowPw(v => !v)}
-                aria-label={showPw ? 'Hide password' : 'Show password'}
-                aria-pressed={showPw} className={styles.eyeBtn}>
-                {showPw ? <EyeOff /> : <EyeOpen />}
-              </button>
+      {/* right side */}
+      <section className={styles.auth}>
+        <div className={styles.card}>
+          <header className={styles.header}>
+            <img src={skillswap} alt="SkillSwap logo" className={styles.formLogo}/>
+            <p className={styles.tagline}>Sign in to your account</p>
+          </header>
+        
+          {successMsg && !serverErr && (
+            <div className={styles.successMessage} role="status">
+              <CheckIcon />
+              <span>{successMsg}</span>
             </div>
-            {hasError('password') && (
-              <p id="pw-err" role="alert" className={styles.fieldError}>
-                <AlertIcon />{errors.password}
-              </p>
-            )}
-          </div>
+          )}
 
-          <div className={styles.meta}>
-            <label className={styles.checkLabel}>
-              <input type="checkbox" checked={remember}
-                onChange={e => setRemember(e.target.checked)} className={styles.checkbox} />
-              <span>Remember me</span>
-            </label>
-          </div>
+          {serverErr && (
+            <div role="alert" aria-live="assertive" className={styles.serverError}>
+              <AlertIcon /><span>{serverErr}</span>
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} aria-busy={loading} className={styles.submitBtn}>
-            {loading ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} noValidate className={styles.form}>
 
-        <p className={styles.footer}>
-          Don't have an account?{' '}
-          <Link to="/register" className={styles.footerLink}>Create one</Link>
-        </p>
-      </div>
+            <div className={styles.field}>
+              <label htmlFor="email" className={styles.label}>Email address</label>
+              <input
+                id="email" type="email" autoComplete="email" placeholder="you@uwm.edu"
+                value={fields.email} onChange={set('email')} onBlur={blur('email')}
+                aria-required="true" aria-invalid={!!hasError('email')}
+                aria-describedby={hasError('email') ? 'email-err' : undefined}
+                className={`${styles.input} ${hasError('email') ? styles.inputInvalid : ''}`}
+              /> 
+              {hasError('email') && (
+                <p id="email-err" role="alert" className={styles.fieldError}>
+                  <AlertIcon />{errors.email}
+                </p>
+              )}
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="password" className={styles.label}>Password</label>
+              <div className={styles.pwWrap}>
+                <input
+                  id="password" type={showPw ? 'text' : 'password'}
+                  autoComplete="current-password" placeholder="••••••••"
+                  value={fields.password} onChange={set('password')} onBlur={blur('password')}
+                  aria-required="true" aria-invalid={!!hasError('password')}
+                  aria-describedby={hasError('password') ? 'pw-err' : undefined}
+                  className={`${styles.input} ${styles.inputPw} ${hasError('password') ? styles.inputInvalid : ''}`}
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPw} className={styles.eyeBtn}>
+                  {showPw ? <EyeOff /> : <EyeOpen />}
+                </button>
+              </div>
+              {hasError('password') && (
+                <p id="pw-err" role="alert" className={styles.fieldError}>
+                  <AlertIcon />{errors.password}
+                </p>
+              )}
+            </div>
+
+            <div className={styles.meta}>
+              <label className={styles.checkLabel}>
+                <input type="checkbox" checked={remember}
+                  onChange={e => setRemember(e.target.checked)} className={styles.checkbox} />
+                <span>Remember me</span>
+              </label>
+            </div>
+
+            <button type="submit" disabled={loading} aria-busy={loading} className={styles.submitBtn}>
+              {loading ? <><span className={styles.spinner} aria-hidden="true" />Signing in…</> : 'Sign In'}
+            </button>
+          </form>
+
+          <p className={styles.footer}>
+            Don't have an account?{' '}
+            <Link to="/register" className={styles.footerLink}>Create one</Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }
