@@ -13,6 +13,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './pages/Profile'; // <-- 1. Import your new Profile page
+import AddSkill from "./pages/AddSkill";
 
 function App() {
   return (
@@ -38,6 +39,17 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <Profile />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/add-skill"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <AddSkill />
               </AppLayout>
             </ProtectedRoute>
           }

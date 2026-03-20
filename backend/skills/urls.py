@@ -1,10 +1,7 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import SkillViewSet
-
-router = DefaultRouter()
-router.register(r'', SkillViewSet) # This makes /api/skills/ work
+from django.urls import path
+from .views import SkillListCreateView
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # This maps 'api/skills/' directly to your new Class-Based View
+    path('', SkillListCreateView.as_view(), name='skill-list-create'),
 ]
