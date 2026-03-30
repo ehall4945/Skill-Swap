@@ -16,11 +16,12 @@ import skillswap from '../images/Skillswap.png';
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
 import authService from "../services/authService"; 
-import { Bell, Home, UserCircle2, MessageSquare, ListChecks, HeartHandshake, Settings, ChevronRight, LogOut, User } from "lucide-react";
+import { Bell, Home, UserCircle2, MessageSquare, PlusCircle, ListChecks, HeartHandshake, Settings, ChevronRight, LogOut, User } from "lucide-react";
 
 const NAV_ITEMS = [
     { to: "/", label: "Home", icon: Home, end: true },
     { to: "/profile", label: "User Profile", icon: UserCircle2 },
+    { to: "/add-skill", label: "Add Skill", icon: PlusCircle },
     { to: "/messages", label: "Messages", icon: MessageSquare },
     { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/listings", label: "Listings", icon: ListChecks },

@@ -27,3 +27,14 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# Python (Django)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+db.sqlite3
+
+# Docker
+.docker-compose.override.yml

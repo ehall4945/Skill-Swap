@@ -17,5 +17,5 @@ class SkillSerializer(serializers.ModelSerializer):
             'skill_type', 
             'created_at'
         ]
-        
-        read_only_fields = ['user']
+
+        read_only_fields = ['user', 'owner_name', 'created_at']
