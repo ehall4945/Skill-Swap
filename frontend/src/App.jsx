@@ -15,6 +15,9 @@ import ChatApp from './components/ChatApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Profile from './pages/Profile';
+import AddSkill from "./pages/AddSkill";
+import Listings from "./pages/Listings";
+import SwapRequests from "./pages/SwapRequests";
 
 function App() {
   return (
@@ -36,7 +39,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/chat"
             element={
@@ -45,13 +47,42 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
                 <AppLayout>
                   <Profile />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-skill"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AddSkill />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/listings"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Listings />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/requests"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <SwapRequests />
                 </AppLayout>
               </ProtectedRoute>
             }

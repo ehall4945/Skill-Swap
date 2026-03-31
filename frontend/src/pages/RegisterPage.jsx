@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
 import styles from './RegisterPage.module.css';
+import background from '../images/background.png';
+import skillswap from '../images/Skillswap.png'; 
 
 const EyeOpen = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -161,81 +163,96 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.card}>
+    <main className={styles.shell}>
+      {/* left side */}
+      <section className={styles.left}>
+        <img src={skillswap} alt="SkillSwap logo" className={styles.leftLogo}/>
+        <div className={styles.group}>
+          <img src={background} alt="Illustration of people exchanging skills" className={styles.background}/>
+          <h2 className={styles.leftTitle}>
+            A peer-to-peer platform for <br />
+            <span>skill sharing</span> without monetary barriers. 
+          </h2>
+        </div>
+      </section>
 
-        <header className={styles.header}>
-          <h1 className={styles.logo}>Skill<span className={styles.accent}>Swap</span></h1>
-          <p className={styles.tagline}>Create your account</p>
-        </header>
+      {/* right side */}
+      <section className={styles.auth}>
+        <div className={styles.card}>
 
-        {serverErr && (
-          <div role="alert" aria-live="assertive" className={styles.serverError}>
-            <AlertIcon /><span>{serverErr}</span>
-          </div>
-        )}
+          <header className={styles.header}>
+            <img src={skillswap} alt="SkillSwap Logo" className={styles.formLogo} />
+            <p className={styles.tagline}>Create your account</p>
+          </header>
 
-        <form onSubmit={handleSubmit} noValidate className={styles.form}>
+          {serverErr && (
+            <div role="alert" aria-live="assertive" className={styles.serverError}>
+              <AlertIcon /><span>{serverErr}</span>
+            </div>
+          )}
 
-          <div className={styles.nameRow}>
-            <Field id="firstName" label="First name" error={hasError('firstName') && errors.firstName}>
-              <input id="firstName" name="firstName" type="text" autoComplete="given-name"
-                value={fields.firstName} onChange={set('firstName')} onBlur={blur('firstName')}
-                aria-required="true" aria-invalid={!!hasError('firstName')}
-                aria-describedby={hasError('firstName') ? 'firstName-err' : undefined}
-                className={`${styles.input} ${hasError('firstName') ? styles.inputInvalid : ''}`} />
+          <form onSubmit={handleSubmit} noValidate className={styles.form}>
+
+            <div className={styles.nameRow}>
+              <Field id="firstName" label="First name" error={hasError('firstName') && errors.firstName}>
+                <input id="firstName" name="firstName" type="text" autoComplete="given-name"
+                  value={fields.firstName} onChange={set('firstName')} onBlur={blur('firstName')}
+                  aria-required="true" aria-invalid={!!hasError('firstName')}
+                  aria-describedby={hasError('firstName') ? 'firstName-err' : undefined}
+                  className={`${styles.input} ${hasError('firstName') ? styles.inputInvalid : ''}`} />
+              </Field>
+              <Field id="lastName" label="Last name" error={hasError('lastName') && errors.lastName}>
+                <input id="lastName" name="lastName" type="text" autoComplete="family-name"
+                  value={fields.lastName} onChange={set('lastName')} onBlur={blur('lastName')}
+                  aria-required="true" aria-invalid={!!hasError('lastName')}
+                  aria-describedby={hasError('lastName') ? 'lastName-err' : undefined}
+                  className={`${styles.input} ${hasError('lastName') ? styles.inputInvalid : ''}`} />
+              </Field>
+            </div>
+
+            <Field id="email" label="Email address" error={hasError('email') && errors.email}>
+              <input id="email" name="email" type="email" autoComplete="email"
+                placeholder="you@uwm.edu"
+                value={fields.email} onChange={set('email')} onBlur={blur('email')}
+                aria-required="true" aria-invalid={!!hasError('email')}
+                aria-describedby={hasError('email') ? 'email-err' : undefined}
+                className={`${styles.input} ${hasError('email') ? styles.inputInvalid : ''}`} />
             </Field>
-            <Field id="lastName" label="Last name" error={hasError('lastName') && errors.lastName}>
-              <input id="lastName" name="lastName" type="text" autoComplete="family-name"
-                value={fields.lastName} onChange={set('lastName')} onBlur={blur('lastName')}
-                aria-required="true" aria-invalid={!!hasError('lastName')}
-                aria-describedby={hasError('lastName') ? 'lastName-err' : undefined}
-                className={`${styles.input} ${hasError('lastName') ? styles.inputInvalid : ''}`} />
+
+            <Field id="password" label="Password" error={hasError('password') && errors.password}>
+              <PwInput id="password" name="password" autoComplete="new-password"
+                placeholder="At least 8 characters"
+                value={fields.password}
+                onChange={e => { set('password')(e); if (fields.confirmPassword) setTouched(t => ({ ...t, confirmPassword: true })); }}
+                onBlur={blur('password')}
+                invalid={!!hasError('password')} />
+              <StrengthMeter password={fields.password} />
             </Field>
-          </div>
 
-          <Field id="email" label="Email address" error={hasError('email') && errors.email}>
-            <input id="email" name="email" type="email" autoComplete="email"
-              placeholder="you@uwm.edu"
-              value={fields.email} onChange={set('email')} onBlur={blur('email')}
-              aria-required="true" aria-invalid={!!hasError('email')}
-              aria-describedby={hasError('email') ? 'email-err' : undefined}
-              className={`${styles.input} ${hasError('email') ? styles.inputInvalid : ''}`} />
-          </Field>
+            <Field id="confirmPassword" label="Confirm password" error={hasError('confirmPassword') && errors.confirmPassword}>
+              <PwInput id="confirmPassword" name="confirmPassword"
+                autoComplete="new-password" placeholder="••••••••"
+                value={fields.confirmPassword}
+                onChange={onConfirmChange} onBlur={blur('confirmPassword')}
+                invalid={!!hasError('confirmPassword')} />
+              {pwsMatch && (
+                <p className={styles.matchOk} aria-live="polite">
+                  <CheckIcon />Passwords match
+                </p>
+              )}
+            </Field>
 
-          <Field id="password" label="Password" error={hasError('password') && errors.password}>
-            <PwInput id="password" name="password" autoComplete="new-password"
-              placeholder="At least 8 characters"
-              value={fields.password}
-              onChange={e => { set('password')(e); if (fields.confirmPassword) setTouched(t => ({ ...t, confirmPassword: true })); }}
-              onBlur={blur('password')}
-              invalid={!!hasError('password')} />
-            <StrengthMeter password={fields.password} />
-          </Field>
+            <button type="submit" disabled={loading} aria-busy={loading} className={styles.submitBtn}>
+              {loading ? <><span className={styles.spinner} aria-hidden="true" />Creating account…</> : 'Create Account'}
+            </button>
+          </form>
 
-          <Field id="confirmPassword" label="Confirm password" error={hasError('confirmPassword') && errors.confirmPassword}>
-            <PwInput id="confirmPassword" name="confirmPassword"
-              autoComplete="new-password" placeholder="••••••••"
-              value={fields.confirmPassword}
-              onChange={onConfirmChange} onBlur={blur('confirmPassword')}
-              invalid={!!hasError('confirmPassword')} />
-            {pwsMatch && (
-              <p className={styles.matchOk} aria-live="polite">
-                <CheckIcon />Passwords match
-              </p>
-            )}
-          </Field>
-
-          <button type="submit" disabled={loading} aria-busy={loading} className={styles.submitBtn}>
-            {loading ? <><span className={styles.spinner} aria-hidden="true" />Creating account…</> : 'Create Account'}
-          </button>
-        </form>
-
-        <p className={styles.footer}>
-          Already have an account?{' '}
-          <Link to="/login" className={styles.footerLink}>Sign in</Link>
-        </p>
-      </div>
+          <p className={styles.footer}>
+            Already have an account?{' '}
+            <Link to="/login" className={styles.footerLink}>Sign in</Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

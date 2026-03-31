@@ -1,46 +1,82 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Dashboard.css"; 
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
+  const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const location = useLocation();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ bio: "", location: "" });
 
   useEffect(() => {
-    api.get('profiles/') 
-      .then((response) => {
-        // Log this so we can see exactly what 'Person' is receiving
-        console.log("DATA RECEIVED FOR LOGGED-IN USER:", response.data);
+    let isMounted = true;
 
-        // Handle both paginated results and direct lists
-        const data = response.data.results ? response.data.results : response.data;
-        
-        // If the list is empty, it means the backend can't find 'Person's' profile
-        if (Array.isArray(data) && data.length > 0) {
-          const myProfile = data[0];
+    async function loadProfilePage() {
+      try {
+        const [profileResponse, skillsResponse] = await Promise.all([
+          api.get("profiles/"),
+          api.get("skills/", { params: { mine: "true" } }),
+        ]);
+
+        if (!isMounted) return;
+
+        // Handle profile data which might be an array or a single object
+        const profileData = profileResponse.data.results ?? profileResponse.data;
+        const myProfile = Array.isArray(profileData) ? profileData[0] : profileData;
+
+        if (myProfile?.id) {
           setProfile(myProfile);
-          setEditForm({ bio: myProfile.bio || "", location: myProfile.location || "" });
-        } else if (!Array.isArray(data) && data.id) {
-          // If Django sent a single object instead of a list
-          setProfile(data);
-          setEditForm({ bio: data.bio || "", location: data.location || "" });
-        } else {
-          setError("No profile found. Please ensure you are logged in as the correct user.");
+          setEditForm({
+            bio: myProfile.bio || "",
+            location: myProfile.location || "",
+          });
+        }  else {
+          console.warn("Profile not found, but continuing to load skills...");
         }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-        setError("Connection error. Try logging out and back in.");
-        setLoading(false);
-      });
+
+        // Handle skills data which might also be an array or a single object
+        const skillsData = skillsResponse.data.results ?? skillsResponse.data;
+
+        console.log("Debug - Skills received:", skillsData);
+
+        setSkills(Array.isArray(skillsData) ? skillsData : []);
+
+      } catch (err) {
+        if (!isMounted) return;
+        console.error("Profile page fetch error:", err);
+        setError("We couldn't load your profile and skills. Try refreshing the page.");
+      }  finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadProfilePage();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  useEffect(() => {
+    // Check if we arrived here with a "flash message"
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+
+      // Clear it after 3 seconds
+      const timer = setTimeout(() => setSuccess(""), 3000);
+      window.history.replaceState({}, document.title);
+
+      return () => clearTimeout(timer);
+    } 
+  }, [location.state]);
 
   // NEW: Handle typing in the input boxes
   const handleChange = (e) => {
@@ -50,8 +86,8 @@ export default function Profile() {
   // NEW: Send the updated data to Django
   const handleSave = async () => {
     // Check if we actually have an ID before sending
-    if (!profile || !profile.id) {
-      alert("Error: Profile ID not found. Try refreshing the page.");
+    if (!profile?.id) {
+      setError("Profile ID not found. Please refresh.");
       return;
     }
 
@@ -59,37 +95,111 @@ export default function Profile() {
       const response = await api.patch(`/profiles/${profile.id}/`, editForm);
       setProfile(response.data);
       setIsEditing(false);
+      setError(""); // Clear any old errors
+
+      // Show success message
+      setSuccess("Profile updated successfully!");
+      setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       console.error("Error saving profile:", err);
+      setError("Failed to save changes. Please try again.");
+    }
+  };
+
+  // NEW: Delete a skill
+  const handleDeleteSkill = async (skillId) => {
+    if (!window.confirm("Are you sure you want to delete this skill?")) return;
+
+    try {
+      await api.delete(`/skills/${skillId}/`);
+
+      // Update the UI by filtering out the deleted skill
+      setSkills(current => current.filter(s => s.id !== skillId));
+
+      // Clear any previous errors if the delete is successful
+      setError("");
+      setSuccess("Skill deleted successfully!");
+      setTimeout(() => setSuccess(""), 3000);
+    }  catch (err) {
+      console.error("Error deleting skill:", err);
+
+      // Set the integrated error message instead of an alert
+      setError("Failed to delete the skill. Please try again.");
+
+      // Auto-hide the error message after 3 seconds
+      setTimeout(() => setError(""), 3000);  
     }
   };
 
   if (loading) return <div className="section-card"><p>Loading your profile...</p></div>;
-  if (error) return <div className="section-card"><p style={{ color: "red" }}>{error}</p></div>;
-  if (!profile) return <div className="section-card"><p>Profile Not Found</p></div>;
-
+  if (!profile && !loading && !error && skills.length === 0) {
+    return <div className="section-card"><p>No profile data found.</p></div>;
+  }
+  
   return (
     <div className="section-card">
+      {/* NEW: Integrated Error Banner */}
+      {error && (
+        <div style={{
+          backgroundColor: "#fee2e2",
+          color: "#b91c1c",
+          padding: "10px",
+          borderRadius: "6px",
+          marginBottom: "15px",
+          border: "1px solid #fecaca",
+          fontSize: "0.9rem",
+          textAlign: "center"
+        }}>
+          {error}
+        </div>
+      )}
+
+      {/* NEW: Success Banner */}
+      {success && (
+        <div style={{
+          backgroundColor: "#dcfce7",
+          color: "#15803d",
+          padding: "10px",
+          borderRadius: "6px",
+          marginBottom: "15px",
+          border: "1px solid #bbf7d0",
+          fontSize: "0.9rem",
+          textAlign: "center"
+        }}>
+          {success}
+        </div>
+      )}
+
+
       <div className="discover">
         <header className="discover-header">
           <h2>Your Profile</h2>
-          {/* NEW: Toggle between Edit and Save buttons */}
           {isEditing ? (
             <div>
-              <button onClick={handleSave} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px", backgroundColor: "#4CAF50", color: "white", marginRight: "10px" }}>
+              <button 
+                onClick={handleSave} 
+                className="add-skill-primary-action" 
+                style={{ padding: "5px 15px" }}
+              >
                 Save
               </button>
-              <button onClick={() => setIsEditing(false)} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px" }}>
+              <button 
+                onClick={() => setIsEditing(false)} 
+                className="add-skill-secondary-action"
+              >
                 Cancel
               </button>
             </div>
           ) : (
-            <button onClick={() => setIsEditing(true)} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px" }}>
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className="add-skill-secondary-action"
+            >
               Edit Profile
             </button>
           )}
         </header>
-
+        
         <div className="profile-details" style={{ marginTop: "20px" }}>
           
           <div style={{ marginBottom: "15px" }}>
@@ -104,7 +214,7 @@ export default function Profile() {
               />
             ) : (
               <p style={{ margin: 0, lineHeight: "1.5" }}>
-                {profile.bio || "You haven't written a bio yet. Tell the community about yourself!"}
+                {profile?.bio || "You haven't written a bio yet. Tell the community about yourself!"}
               </p>
             )}
           </div>
@@ -122,11 +232,50 @@ export default function Profile() {
               />
             ) : (
               <p style={{ margin: 0 }}>
-                {profile.location || "No location set."}
+                {profile?.location || "No location set."}
               </p>
             )}
           </div>
           
+        </div>
+
+        <div style={{ marginTop: "28px" }}>
+          <h3 style={{ margin: "0 0 12px 0", color: "#555" }}>Your Skills</h3>
+
+          {skills.length === 0 ? (
+            <p style={{ margin: 0, color: "#64748B" }}>
+              You have not added any skills yet.
+            </p>
+          ) : (
+            <div className="discover-feed">
+              {skills.map((skill) => (
+                <article key={skill.id} className="skill-card" style={{ position: "relative" }}>
+                  {/* THE DELETE BUTTON */}
+                  <button
+                  onClick={() => handleDeleteSkill(skill.id)}
+                  style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    background: "none",
+                    border: "none",
+                    color: "#ef4444",
+                    fontSize: "1.2rem",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                  title="Delete Skill"
+                >
+                  ×
+                </button>
+
+                <h3>{skill.title}</h3>
+                <p>{skill.description}</p>
+                <span className="skill-tag">{skill.category || "General"}</span>
+              </article>
+            ))}
+          </div>
+        )}
         </div>
       </div>
     </div>

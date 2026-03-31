@@ -1,0 +1,457 @@
+.discover-section {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e4e4e4;
+  border-radius: 16px;
+  padding: 32px;
+  box-sizing: border-box;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+
+}
+
+.discover-cards-box {
+  background: #ececec;
+  border: 1px solid #e4e4e4;
+  border-radius: 12px;
+  padding: 28px;
+  margin-top: 22px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+.discover-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.discover-section__title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 700;
+  color: #2f2f2f;
+}
+
+.discover-section__feedback {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.discover-section__feedback--yes {
+  background: #e8f7ee;
+  color: #1f7a46;
+}
+
+.discover-section__feedback--pass {
+  background: #fdecee;
+  color: #b64153;
+}
+
+.discover-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  overflow: hidden;
+}
+
+.discover-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+  min-height: 445px;
+  box-sizing: border-box;
+  perspective: 1400px;
+  overflow: hidden;
+}
+
+.discover-card__image-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.discover-card__image-frame {
+  width: 185px;
+  height: 185px;
+  border-radius: 50%;
+  border: 4px solid #c9b0ef;
+  overflow: hidden;
+  background: #faf7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discover-card__image-frame--purple {
+  border-color: #c9a6f0;
+}
+
+.discover-card__image-frame--blue {
+  border-color: #4f8fe8;
+}
+
+.discover-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(0.92) brightness(1.02);
+}
+
+.discover-card__content {
+  /* padding-right: 36px; */
+  padding-top: 14px;
+}
+
+.discover-card__name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.discover-card__name {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.discover-card__pronouns {
+  font-size: 11px;
+  line-height: 1;
+  color: #9b9b9b;
+  font-weight: 500;
+}
+
+.discover-card__headline {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  color: #525252;
+}
+
+.discover-card__location {
+  margin: 0 0 10px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: #9a9a9a;
+  font-weight: 500;
+}
+
+.discover-card__skills {
+  margin-top: 10px;
+}
+
+.discover-card__skill-line {
+  margin: 2px 0;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #2f2f2f;
+  font-weight: 700;
+}
+
+/* DESKTOP / TABLET ACTIONS */
+.discover-card__desktop-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.discover-card__action-btn {
+  flex: 1;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.discover-card__action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.discover-card__action-btn--pass {
+  background: #fff2f4;
+  border-color: #f4d5da;
+  color: #c64e61;
+}
+
+.discover-card__action-btn--pass:hover:not(:disabled) {
+  background: #ffe8ec;
+}
+
+.discover-card__action-btn--yes {
+  background: #edf8f1;
+  border-color: #d5ecd9;
+  color: #2e8b57;
+}
+
+.discover-card__action-btn--yes:hover:not(:disabled) {
+  background: #e3f5e9;
+}
+
+/* MOBILE ELLIPSIS MENU */
+.discover-card__mobile-menu-wrap {
+  display: none;
+  position: absolute;
+  right: 14px;
+  bottom: 18px;
+}
+
+.discover-card__more-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #ebebeb;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #6e7c90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__more-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fafafa;
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+}
+
+.discover-card__more-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.discover-card__mobile-actions-popup {
+  position: absolute;
+  right: 0;
+  bottom: 52px;
+  width: 150px;
+  background: #ffffff;
+  border: 1px solid #e9e9e9;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+@media (max-width: 1200px) {
+  .discover-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile section */
+@media (max-width: 760px) {
+  .discover-section {
+    padding: 14px;
+  }
+
+  .discover-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .discover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-card {
+    min-height: 430px;
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .discover-card__desktop-actions {
+    display: none;
+  }
+
+  .discover-card__mobile-menu-wrap {
+    display: block;
+  }
+
+  .discover-card__flip-shell {
+    min-height: 430px;
+  }
+}
+
+.discover-card__info-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e8e8e8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6e7c90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  z-index: 8;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__info-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #fafafa;
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+}
+
+.discover-card__info-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.discover-card__flip-shell {
+  position: relative;
+  width: 100%;
+  min-height: 445px;
+  transform-style: preserve-3d;
+}
+
+.discover-card__face {
+  position: absolute;
+  inset: 0;
+  padding: 22px 20px 18px;
+  box-sizing: border-box;
+  background: #ffffff;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.discover-card__face--front {
+  z-index: 2;
+}
+
+.discover-card__face--back {
+  transform: rotateY(180deg);
+}
+
+.discover-card__back-header {
+  margin-bottom: 14px;
+}
+
+.discover-card__back-title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: #2b2b2b;
+}
+
+.discover-card__back-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #8f8f8f;
+  font-weight: 500;
+}
+
+.discover-card__back-section {
+  margin-bottom: 14px;
+}
+
+.discover-card__back-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #6a6a6a;
+}
+
+.discover-card__back-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3a3a3a;
+}
+
+.discover-card__back-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #3a3a3a;
+}
+
+.discover-card__back-list li + li {
+  margin-top: 4px;
+}
+
+.discover-card__back-btn {
+  margin-top: auto;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #d9dfea;
+  background: #f5f7fb;
+  color: #44536a;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.discover-card__back-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #edf2f8;
+}
+
+.discover-card__back-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
