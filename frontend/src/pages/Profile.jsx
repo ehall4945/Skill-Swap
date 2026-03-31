@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Dashboard.css"; 
@@ -9,6 +10,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const location = useLocation();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
@@ -21,7 +23,7 @@ export default function Profile() {
       try {
         const [profileResponse, skillsResponse] = await Promise.all([
           api.get("profiles/"),
-          api.get("skills/"),
+          api.get("skills/", { params: { mine: "true" } }),
         ]);
 
         if (!isMounted) return;
@@ -63,6 +65,19 @@ export default function Profile() {
     };
   }, []);
 
+  useEffect(() => {
+    // Check if we arrived here with a "flash message"
+    if (location.state?.message) {
+      setSuccess(location.state.message);
+
+      // Clear it after 3 seconds
+      const timer = setTimeout(() => setSuccess(""), 3000);
+      window.history.replaceState({}, document.title);
+
+      return () => clearTimeout(timer);
+    } 
+  }, [location.state]);
+
   // NEW: Handle typing in the input boxes
   const handleChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
@@ -71,8 +86,8 @@ export default function Profile() {
   // NEW: Send the updated data to Django
   const handleSave = async () => {
     // Check if we actually have an ID before sending
-    if (!profile || !profile.id) {
-      alert("Error: Profile ID not found. Try refreshing the page.");
+    if (!profile?.id) {
+      setError("Profile ID not found. Please refresh.");
       return;
     }
 
@@ -99,10 +114,12 @@ export default function Profile() {
       await api.delete(`/skills/${skillId}/`);
 
       // Update the UI by filtering out the deleted skill
-      setSkills(skills.filter((skill) => skill.id !== skillId));
+      setSkills(current => current.filter(s => s.id !== skillId));
 
       // Clear any previous errors if the delete is successful
       setError("");
+      setSuccess("Skill deleted successfully!");
+      setTimeout(() => setSuccess(""), 3000);
     }  catch (err) {
       console.error("Error deleting skill:", err);
 
@@ -157,23 +174,32 @@ export default function Profile() {
       <div className="discover">
         <header className="discover-header">
           <h2>Your Profile</h2>
-          {/* NEW: Toggle between Edit and Save buttons */}
           {isEditing ? (
             <div>
-              <button onClick={handleSave} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px", backgroundColor: "#4CAF50", color: "white", marginRight: "10px" }}>
+              <button 
+                onClick={handleSave} 
+                className="add-skill-primary-action" 
+                style={{ padding: "5px 15px" }}
+              >
                 Save
               </button>
-              <button onClick={() => setIsEditing(false)} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px" }}>
+              <button 
+                onClick={() => setIsEditing(false)} 
+                className="add-skill-secondary-action"
+              >
                 Cancel
               </button>
             </div>
           ) : (
-            <button onClick={() => setIsEditing(true)} className="icon-button" style={{ fontSize: "0.9rem", padding: "5px 10px" }}>
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className="add-skill-secondary-action"
+            >
               Edit Profile
             </button>
           )}
         </header>
-
+        
         <div className="profile-details" style={{ marginTop: "20px" }}>
           
           <div style={{ marginBottom: "15px" }}>

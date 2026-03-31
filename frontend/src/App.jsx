@@ -14,6 +14,8 @@ import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './pages/Profile'; // <-- 1. Import your new Profile page
 import AddSkill from "./pages/AddSkill";
+import Listings from "./pages/Listings";
+import SwapRequests from "./pages/SwapRequests";
 
 function App() {
   return (
@@ -50,6 +52,28 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <AddSkill />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/listings"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Listings />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/requests"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <SwapRequests />
               </AppLayout>
             </ProtectedRoute>
           }
