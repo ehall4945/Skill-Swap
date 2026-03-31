@@ -25,6 +25,7 @@ from .views import (
     current_user_view,
     update_user_view,
 )
+from skills.views import SwapRequestViewSet
 
 def home_view(request):
     return JsonResponse({"status": "Skill-Swap Backend is Online"})
@@ -33,6 +34,16 @@ def test_api(request):
     return JsonResponse({"message": "Hello from Django! SkillSwap is ready."})
 
 app_name = 'core'
+swap_request_list = SwapRequestViewSet.as_view({
+    "get": "list",
+    "post": "create",
+})
+
+swap_request_detail = SwapRequestViewSet.as_view({
+    "get": "retrieve",
+    "patch": "partial_update",
+    "delete": "destroy",
+})
 
 urlpatterns = [
     path('', home_view),
@@ -50,4 +61,8 @@ urlpatterns = [
 
     path('api/profiles/', include('profiles.urls')),
     path('api/skills/', include('skills.urls')),
+
+    # Swap Request endpoints
+    path('api/requests/', swap_request_list, name='swap-request-list-create'),
+    path('api/requests/<int:pk>/', swap_request_detail, name='swap-request-detail'),
 ]
