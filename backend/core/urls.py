@@ -58,7 +58,7 @@ urlpatterns = [
     # User endpoints
     path('api/auth/me/', current_user_view, name='current_user'),
     path('api/auth/me/update/', update_user_view, name='update_user'),
-
+    path('api/chat/', include('chat.urls')),
     path('api/profiles/', include('profiles.urls')),
     path('api/skills/', include('skills.urls')),
 

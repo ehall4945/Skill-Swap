@@ -24,7 +24,7 @@ const NAV_ITEMS = [
     { to: "/listings", label: "Marketplace", icon: ListChecks },
     { to: "/requests", label: "Swap Requests", icon: Repeat },
     { to: "/add-skill", label: "Add Skill", icon: PlusCircle },
-    { to: "/messages", label: "Messages", icon: MessageSquare },
+    { to: "/chat", label: "Messages", icon: MessageSquare },
     { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/matches", label: "Matches", icon: HeartHandshake },
     { to: "/settings", label: "Settings", icon: Settings },
