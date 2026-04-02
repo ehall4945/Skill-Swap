@@ -1,5 +1,5 @@
 // frontend/src/components/ChatApp.jsx
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../hooks/useChat';
@@ -268,12 +268,29 @@ export default function ChatApp() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [showModal,          setShowModal]          = useState(false);
 
+  const location = useLocation();
   const navigate = useNavigate();
+  const handledActiveIdRef = useRef(null);
 
 
   useEffect(() => {
     fetchConversations().then(data => setConversations(data.results ?? data));
   }, []);
+
+  useEffect(() => {
+    const incomingActiveId = Number(location.state?.activeId);
+    if (!incomingActiveId || conversations.length === 0) return;
+    if (handledActiveIdRef.current === incomingActiveId) return;
+
+    const matchingConversation = conversations.find(
+      (conv) => Number(conv.id) === incomingActiveId
+    );
+
+    if (matchingConversation) {
+      setActiveConversation(matchingConversation);
+      handledActiveIdRef.current = incomingActiveId;
+    }
+  }, [conversations, location.state?.activeId]);
 
   const handleStartConversation = async (userId) => {
     try {

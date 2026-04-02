@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { startConversation } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Dashboard.css"; 
@@ -11,10 +13,17 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ bio: "", location: "" });
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const profileChatTargetId = Number(location.state?.targetUserId ?? profile?.user ?? 0);
+  const canMessageProfile =
+    Boolean(profileChatTargetId) && Number(profileChatTargetId) !== Number(user?.id);
 
   useEffect(() => {
     let isMounted = true;
@@ -106,6 +115,28 @@ export default function Profile() {
     }
   };
 
+  const handleInitiateChat = async (targetUserId) => {
+    if (!targetUserId) {
+      setError("We couldn't determine who to message from this profile.");
+      return;
+    }
+
+    try {
+      setChatLoading(true);
+      setError("");
+      const conv = await startConversation(targetUserId);
+      navigate("/chat", { state: { activeId: conv.id } });
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError(
+        err.response?.data?.detail ||
+        "Could not open a conversation right now. Please try again."
+      );
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
   // NEW: Delete a skill
   const handleDeleteSkill = async (skillId) => {
     if (!window.confirm("Are you sure you want to delete this skill?")) return;
@@ -174,7 +205,18 @@ export default function Profile() {
       <div className="discover">
         <header className="discover-header">
           <h2>Your Profile</h2>
-          {isEditing ? (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            {canMessageProfile && (
+              <button
+                onClick={() => handleInitiateChat(profileChatTargetId)}
+                className="add-skill-primary-action"
+                disabled={chatLoading}
+                style={{ padding: "5px 15px", opacity: chatLoading ? 0.8 : 1 }}
+              >
+                {chatLoading ? "Opening..." : "Message"}
+              </button>
+            )}
+            {isEditing ? (
             <div>
               <button 
                 onClick={handleSave} 
@@ -198,6 +240,7 @@ export default function Profile() {
               Edit Profile
             </button>
           )}
+          </div>
         </header>
         
         <div className="profile-details" style={{ marginTop: "20px" }}>
