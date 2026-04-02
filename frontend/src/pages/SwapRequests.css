@@ -55,6 +55,12 @@
   align-items: center;
 }
 
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Status Badges */
 .status-badge {
   padding: 6px 12px;
@@ -91,6 +97,14 @@
 
 button:hover {
   opacity: 0.9;
+}
+
+.btn-accept:disabled,
+.btn-reject:disabled,
+.btn-withdraw:disabled,
+.btn-message:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .empty-msg {

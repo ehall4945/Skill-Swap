@@ -1,12 +1,12 @@
 // frontend/src/components/ChatApp.jsx
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../hooks/useChat';
 import {
+  fetchConnections,
   fetchConversations,
   fetchMessages,
-  fetchUsers,
   startConversation,
 } from '../api/client';
 import './ChatApp.css';
@@ -89,14 +89,32 @@ function MessageBubble({ msg, isMine, isRead }) {
 // ── NewConversationModal ───────────────────────────────────────────
 
 function NewConversationModal({ onClose, onStart }) {
-  const [users,   setUsers]   = useState([]);
-  const [search,  setSearch]  = useState('');
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchUsers()
-      .then(data => setUsers(data.results ?? data))
-      .finally(() => setLoading(false));
+    let isMounted = true;
+
+    fetchConnections()
+      .then(data => {
+        if (!isMounted) return;
+        // Logic Fix: Handle DRF paginated 'results' or direct array
+        const connectionList = Array.isArray(data) ? data : (data.results || []);
+        setUsers(connectionList);
+      })
+      .catch(err => {
+        console.error("Failed to load connections:", err);
+        if (isMounted) setUsers([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filtered = users.filter(u =>
@@ -110,18 +128,37 @@ function NewConversationModal({ onClose, onStart }) {
           <h3>New Conversation</h3>
           <button className="ca-icon-btn" onClick={onClose}>✕</button>
         </div>
-        <input
-          className="ca-modal__search"
-          placeholder="Search by name or email…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          autoFocus
-        />
+        
+        {users.length > 0 && (
+          <input
+            className="ca-modal__search"
+            placeholder="Search connections..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            autoFocus
+          />
+        )}
+
         <ul className="ca-modal__list">
-          {loading && <li className="ca-modal__empty">Loading…</li>}
-          {!loading && filtered.length === 0 && (
-            <li className="ca-modal__empty">No users found</li>
+          {loading && <li className="ca-modal__empty">Loading connections...</li>}
+          
+          {!loading && users.length === 0 && (
+            <li className="ca-modal__empty">
+              <p>No connections yet. You can only message users after a swap request is accepted.</p>
+              <button 
+                className="ca-modal__action-btn" 
+                style={{ marginTop: '10px', padding: '8px 12px', cursor: 'pointer' }}
+                onClick={() => { navigate('/skills'); onClose(); }}
+              >
+                Browse Skills
+              </button>
+            </li>
           )}
+
+          {!loading && users.length > 0 && filtered.length === 0 && (
+            <li className="ca-modal__empty">No connections found</li>
+          )}
+
           {filtered.map(u => (
             <li key={u.id}>
               <button className="ca-modal__user-btn" onClick={() => onStart(u.id)}>
@@ -143,7 +180,7 @@ function NewConversationModal({ onClose, onStart }) {
 
 function ChatWindow({ conversation, currentUser }) {
   const [messages, setMessages] = useState([]);
-  const [input,    setInput]    = useState('');
+  const [input,     setInput]    = useState('');
   const [readSet,  setReadSet]  = useState(new Set());
   const endRef = useRef(null);
 
@@ -169,7 +206,6 @@ function ChatWindow({ conversation, currentUser }) {
     if (reader_id !== currentUser.id) {
       setReadSet(prev => {
         const next = new Set(prev);
-        // mark all current messages as read
         setMessages(msgs => { msgs.forEach(m => next.add(m.id)); return msgs; });
         return next;
       });
@@ -268,12 +304,29 @@ export default function ChatApp() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [showModal,          setShowModal]          = useState(false);
 
+  const location = useLocation();
   const navigate = useNavigate();
+  const handledActiveIdRef = useRef(null);
 
 
   useEffect(() => {
     fetchConversations().then(data => setConversations(data.results ?? data));
   }, []);
+
+  useEffect(() => {
+    const incomingActiveId = Number(location.state?.activeId);
+    if (!incomingActiveId || conversations.length === 0) return;
+    if (handledActiveIdRef.current === incomingActiveId) return;
+
+    const matchingConversation = conversations.find(
+      (conv) => Number(conv.id) === incomingActiveId
+    );
+
+    if (matchingConversation) {
+      setActiveConversation(matchingConversation);
+      handledActiveIdRef.current = incomingActiveId;
+    }
+  }, [conversations, location.state?.activeId]);
 
   const handleStartConversation = async (userId) => {
     try {
@@ -288,7 +341,6 @@ export default function ChatApp() {
 
   return (
     <div className="ca-app">
-      {/* Sidebar */}
       <aside className="ca-sidebar">
         <div className="ca-sidebar__header">
           <h2 className="ca-sidebar__title">Messages</h2>
@@ -326,7 +378,6 @@ export default function ChatApp() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="ca-main">
         <ChatWindow conversation={activeConversation} currentUser={user} />
       </main>

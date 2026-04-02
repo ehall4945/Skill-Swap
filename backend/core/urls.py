@@ -25,7 +25,7 @@ from .views import (
     current_user_view,
     update_user_view,
 )
-from skills.views import SwapRequestViewSet
+from skills.views import ConnectionListView, SwapRequestViewSet
 
 def home_view(request):
     return JsonResponse({"status": "Skill-Swap Backend is Online"})
@@ -61,6 +61,7 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/profiles/', include('profiles.urls')),
     path('api/skills/', include('skills.urls')),
+    path('api/connections/', ConnectionListView.as_view(), name='connection-list'),
 
     # Swap Request endpoints
     path('api/requests/', swap_request_list, name='swap-request-list-create'),

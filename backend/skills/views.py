@@ -1,12 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.db.models import Q
 from rest_framework import generics, mixins, permissions, viewsets
 from .models import Skill, SwapRequest
-from .serializers import SkillSerializer, SwapRequestSerializer
+from .serializers import ConnectionSerializer, SkillSerializer, SwapRequestSerializer
+
+User = get_user_model()
 
 class SkillListCreateView(generics.ListCreateAPIView):
-    """
-    Handles listing all skills (GET) and creating a new skill (POST).
-    """
     serializer_class = SkillSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -23,16 +23,11 @@ class SkillListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 class SkillDetailView(generics.DestroyAPIView):
-    """
-    Handles deleting a specific skill (DELETE /skills/id/).
-    """
     serializer_class = SkillSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Security: Users can only delete skills they own
         return Skill.objects.filter(user=self.request.user)
-
 
 class SwapRequestViewSet(
     mixins.ListModelMixin,
@@ -58,3 +53,29 @@ class SwapRequestViewSet(
 
     def perform_create(self, serializer):
         serializer.save(sender=self.request.user)
+
+class ConnectionListView(generics.ListAPIView):
+    serializer_class = ConnectionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        accepted_requests = (
+            SwapRequest.objects
+            .filter(
+                Q(sender=user) | Q(receiver=user),
+                status=SwapRequest.STATUS_ACCEPTED,
+            )
+            .select_related("sender", "receiver")
+        )
+
+        connection_ids = {
+            request.receiver_id if request.sender_id == user.id else request.sender_id
+            for request in accepted_requests
+        }
+
+        return User.objects.filter(
+            id__in=connection_ids,
+            is_active=True,
+        ).order_by("first_name", "last_name", "email")
+        

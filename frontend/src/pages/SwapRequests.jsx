@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { startConversation } from "../api/client";
 import api from "../services/api";
 import "./SwapRequests.css";
 
@@ -7,6 +9,8 @@ export default function SwapRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
+  const [chatLoadingId, setChatLoadingId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -58,6 +62,28 @@ export default function SwapRequests() {
     }
   };
 
+  const handleInitiateChat = async (targetUserId, requestId) => {
+    if (!targetUserId) {
+      setError("We couldn't determine who to message for this request.");
+      return;
+    }
+
+    try {
+      setChatLoadingId(requestId);
+      setError("");
+      const conv = await startConversation(targetUserId);
+      navigate("/chat", { state: { activeId: conv.id } });
+    } catch (err) {
+      console.error("Conversation start error:", err);
+      setError(
+        err.response?.data?.detail ||
+        "Could not open a conversation right now. Please try again."
+      );
+    } finally {
+      setChatLoadingId(null);
+    }
+  };
+
   if (loading) return <div className="loading-container">Loading your requests...</div>;
 
   const incoming = requests.filter((r) => r.receiver === currentUser?.id);
@@ -97,8 +123,12 @@ export default function SwapRequests() {
                     <div className="status-container">
                       <span className={`status-badge status--${req.status}`}>{req.status}</span>
                       {req.status === 'accepted' && (
-                        <button className="btn-message" onClick={() => window.location.href='/messages'}>
-                          Message
+                        <button
+                          className="btn-message"
+                          onClick={() => handleInitiateChat(req.sender, req.id)}
+                          disabled={chatLoadingId === req.id}
+                        >
+                          {chatLoadingId === req.id ? "Opening..." : "Message"}
                         </button>
                       )}
                     </div>
@@ -121,6 +151,15 @@ export default function SwapRequests() {
                 </div>
                 <div className="request-footer">
                   <span className={`status-badge status--${req.status}`}>{req.status}</span>
+                  {req.status === 'accepted' && (
+                    <button
+                      className="btn-message"
+                      onClick={() => handleInitiateChat(req.receiver, req.id)}
+                      disabled={chatLoadingId === req.id}
+                    >
+                      {chatLoadingId === req.id ? "Opening..." : "Message"}
+                    </button>
+                  )}
                   {req.status === 'pending' && (
                     <button className="btn-withdraw" onClick={() => handleWithdraw(req.id)}>
                       Withdraw
