@@ -6,6 +6,26 @@ import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Dashboard.css"; 
 
+const US_STATES = [
+  { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' }, { code: 'DE', name: 'Delaware' }, { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' }, { code: 'HI', name: 'Hawaii' }, { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' }, { code: 'IN', name: 'Indiana' }, { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' }, { code: 'KY', name: 'Kentucky' }, { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' }, { code: 'MD', name: 'Maryland' }, { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' }, { code: 'MN', name: 'Minnesota' }, { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' }, { code: 'MT', name: 'Montana' }, { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' }, { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' }, { code: 'NY', name: 'New York' }, { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' }, { code: 'OH', name: 'Ohio' }, { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' }, { code: 'PA', name: 'Pennsylvania' }, { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' }, { code: 'SD', name: 'South Dakota' }, { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' }, { code: 'UT', name: 'Utah' }, { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' }, { code: 'WA', name: 'Washington' }, { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }
+];
+
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [skills, setSkills] = useState([]);
@@ -266,20 +286,23 @@ export default function Profile() {
             <h3 style={{ margin: "0 0 5px 0", color: "#555" }}>Location</h3>
             {/* NEW: Show input if editing, otherwise show regular text */}
             {isEditing ? (
-              <input 
-                type="text"
-                name="location"
-                value={editForm.location}
-                onChange={handleChange}
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-              />
+              <select 
+                name="location" 
+                value={editForm.location} 
+                onChange={handleChange} 
+                style={inputStyle}
+              >
+                {US_STATES.map(state => (
+                  <option key={state.code} value={state.code}>{state.name}</option>
+                ))}
+              </select>
             ) : (
               <p style={{ margin: 0 }}>
-                {profile?.location || "No location set."}
+                {/* Helper: Shows 'Wisconsin' instead of just 'WI' */}
+                {US_STATES.find(s => s.code === profile?.location)?.name || profile?.location || "No location set."}
               </p>
             )}
           </div>
-          
         </div>
 
         <div style={{ marginTop: "28px" }}>
@@ -324,3 +347,10 @@ export default function Profile() {
     </div>
   );
 }
+
+const bannerStyle = (bg, color) => ({
+  backgroundColor: bg, color: color, padding: "10px", borderRadius: "6px", marginBottom: "15px", border: `1px solid ${color}55`, textAlign: "center"
+});
+const labelStyle = { margin: "0 0 5px 0", color: "#555" };
+const inputStyle = { width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minHeight: "38px" };
+const deleteBtnStyle = { position: "absolute", top: "10px", right: "10px", background: "none", border: "none", color: "#ef4444", fontSize: "1.2rem", cursor: "pointer" };
