@@ -4,8 +4,8 @@ import api from '../services/api';
 
 // ── REST helpers ───────────────────────────────────────────────────
 
-export const fetchUsers = async () => {
-  const res = await api.get('/chat/users/');
+export const fetchConnections = async () => {
+  const res = await api.get('/connections/');
   return res.data;
 };
 
