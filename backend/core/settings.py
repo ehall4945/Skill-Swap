@@ -205,6 +205,8 @@ CSRF_TRUSTED_ORIGINS = {
     "http://localhost:5174",
 }
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media" 
 import sys
 
 # Use SQLite in-memory database for tests
