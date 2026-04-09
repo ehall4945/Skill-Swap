@@ -1,0 +1,121 @@
+.swap-requests-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 40px;
+}
+
+.requests-column h3 {
+  font-size: 1.4rem;
+  color: #334155;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.request-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s;
+}
+
+.request-card:hover {
+  transform: translateY(-2px);
+}
+
+.request-body h4 {
+  margin: 0 0 8px 0;
+  color: #4f46e5;
+}
+
+.request-date {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: block;
+  margin-top: 10px;
+}
+
+.request-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status--pending { background: #fef3c7; color: #92400e; }
+.status--accepted { background: #dcfce7; color: #166534; }
+.status--rejected { background: #fee2e2; color: #991b1b; }
+
+/* Buttons */
+.action-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-accept, .btn-reject, .btn-withdraw, .btn-message {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+
+.btn-accept { background: #22c55e; color: white; }
+.btn-reject, .btn-withdraw { background: #ef4444; color: white; }
+.btn-message { background: #4f46e5; color: white; margin-left: 10px; }
+
+button:hover {
+  opacity: 0.9;
+}
+
+.btn-accept:disabled,
+.btn-reject:disabled,
+.btn-withdraw:disabled,
+.btn-message:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.empty-msg {
+  color: #64748b;
+  font-style: italic;
+}
+
+.error-banner {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}

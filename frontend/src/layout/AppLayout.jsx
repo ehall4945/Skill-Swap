@@ -12,45 +12,222 @@ All pages render inside this component.
 */
 
 import "./AppLayout.css";
-import { Bell, Send, User } from "lucide-react";
+import skillswap from '../images/Skillswap.png'; 
+import { useEffect, useState, useCallback, useRef } from "react"; 
+import { NavLink, useNavigate } from "react-router-dom";
+import authService from "../services/authService"; 
+import { Bell, Home, UserCircle2, MessageSquare, PlusCircle, ListChecks, HeartHandshake, Settings, ChevronRight, LogOut, User, Repeat } from "lucide-react";
+
+const NAV_ITEMS = [
+    { to: "/", label: "Home", icon: Home, end: true },
+    { to: "/profile", label: "User Profile", icon: UserCircle2 },
+    { to: "/listings", label: "Marketplace", icon: ListChecks },
+    { to: "/requests", label: "Swap Requests", icon: Repeat },
+    { to: "/add-skill", label: "Add Skill", icon: PlusCircle },
+    { to: "/chat", label: "Messages", icon: MessageSquare },
+    { to: "/notifications", label: "Notifications", icon: Bell },
+    { to: "/matches", label: "Matches", icon: HeartHandshake },
+    { to: "/settings", label: "Settings", icon: Settings },
+];
 
 function AppLayout({ children }) {
-  return (
-    <div className="app-layout">
+    const [user, setUser] = useState(authService.getUser()); 
+    const [loadingUser, setLoadingUser] = useState(!authService.getUser());
+    const [logoutBusy, setLogoutBusy] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
+    const dropdownRef = useRef(null); 
+    const avatarBtnRef = useRef(null);
 
-        {/* Heading and icons, auto applies to all child pages */}
-        <header className="app-header">
+    const navigate = useNavigate();
 
-            <div className="header-inner">
+    /* Fetch logged-in user data */ 
+    useEffect(() => {
+        let alive = true;
+        async function loadCurrentUser() {
+            try{
+                setLoadingUser(true);
+                const data = await authService.getCurrentUser();
+                if(!alive) return;
+                setUser(data);
+                localStorage.setItem("user", JSON.stringify(data)); 
+            } catch (e){
+                if(!alive) return;
+                setUser(null);
+                localStorage.removeItem("user");
+            } finally {
+                if (alive) setLoadingUser(false);
+            }
+        }
 
-                <h1 className="logo">SkillSwap</h1>
+        if(authService.isAuthenticated()){
+            loadCurrentUser();
+        } else {
+            setLoadingUser(false);
+        }
 
-                <div className="header-icons">
+        return () => { alive = false; };
+    }, []);
 
-                    <button className="icon-button">
-                        <Bell size={20} strokeWidth={1.8}/>
-                    </button>
+    const greetingName = (user?.first_name && user.first_name.trim()) ||
+                         (user?.name && user.name.trim()) ||
+                         (user?.username && user.username.trim()) ||
+                         ""; 
+    
+    const helloText = greetingName ? `Hello, ${greetingName}!` : "Hello!";
 
-                    <button className="icon-button">
-                        <Send size={20} strokeWidth={1.8}/>
-                    </button>
+    const avatarLetter = (user?.first_name?.[0] || user?.username?.[0] || "U").toUpperCase();
 
-                    <button className="icon-button profile-button">
-                        <User size={20} strokeWidth={1.8}/>
-                    </button>
+    const handleLogout = useCallback(() => {
+        if(logoutBusy) return;
+        setLogoutBusy(true);
+        try{
+            authService.logout();
+            setUser(null);
+            navigate("/login", { replace: true });
+        } finally {
+            setLogoutBusy(false);
+        }
+    }, [logoutBusy, navigate]);
 
+    useEffect(() => {
+        function onDocClick(e){
+            if (!profileOpen) return;
+            const menu = dropdownRef.current;
+            const btn = avatarBtnRef.current;
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)){
+                setProfileOpen(false);
+            }
+        }
+        function onEscape(e){
+            if (e.key === "Escape") setProfileOpen(false);
+        }
+        document.addEventListener("mousedown", onDocClick);
+        document.addEventListener("keydown", onEscape);
+        return () => {
+            document.removeEventListener("mousedown", onDocClick);
+            document.removeEventListener("keydown", onEscape);
+        };
+    }, [profileOpen]);
+
+    return (
+        <div className="app-layout">
+            {/* left sidebar */}
+            <aside className="sidebar">
+                <div className="sidebar-brand">
+                    <img src={skillswap} alt="SkillSwap Logo" className="brand-logo" />
                 </div>
 
+                <nav className="sidebar-nav" aria-label="Primary">
+                    {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+                        <NavLink 
+                            key={to} 
+                            to={to} 
+                            end={Boolean(end)} 
+                            className={({ isActive }) => 
+                            `sidebar-item ${isActive ? "active" : ""}`
+                            }
+                        >
+                        <span className="sidebar-item-icon">
+                            <Icon size={18} strokeWidth={2} /> 
+                        </span>
+                        <span className="sidebar-item-label">{label}</span>
+                        <ChevronRight 
+                            size={16}
+                            strokeWidth={2}
+                            className="sidebar-item-chevron"
+                            aria-hidden="true"
+                        />
+                    </NavLink>
+                    ))}
+                </nav>
+            </aside>
+            
+            {/* main content area */}
+            <div className="main">
+                <header className="header" role="banner">
+                    <div className="header-bar">
+                        <div className="header-bar-inner">
+                            <div className="header-left">
+                                <div className="hello">
+                                    {loadingUser ? "Loading..." : helloText}
+                                </div>
+                            </div>
+
+                            {/* header actions */}
+                            <div className="header-actions">
+                                <button className="icon-button" type="button" aria-label="Notifications" onClick={() => navigate("/requests")}>
+                                    <Bell strokeWidth = {1.8} />
+                                </button>
+                                
+                                <button 
+                                    ref={avatarBtnRef}
+                                    className="avatar-button" 
+                                    type="button" 
+                                    aria-haspopup="menu"
+                                    aria-expanded={profileOpen}
+                                    aria-controls="profile-menu"
+                                    onClick={() => setProfileOpen((v) => !v)}
+                                >
+                                    <span className="avatar">{avatarLetter}</span>
+                                </button> 
+
+                                {profileOpen && (
+                                    <div 
+                                        id="profile-menu"
+                                        role="menu"
+                                        aria-label="Profile Menu"
+                                        className="profile-menu"
+                                        ref={dropdownRef}
+                                        >
+                                        <div className="profile-menu-header"> 
+                                            <div className="profile-initial">{avatarLetter}</div> 
+                                            <div className="profile-meta">
+                                                <div className="profile-name">{greetingName || "User"}</div>
+                                                <div className="profile-username">{user?.username ? `@${user.username}` : ""}</div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            className="profile-menu-item"
+                                            onClick={() => {
+                                                setProfileOpen(false);
+                                                navigate("/profile");
+                                            }}
+                                            >
+                                            <User size={16} />
+                                            <span>Profile</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            className="profile-menu-item danger"
+                                            onClick={handleLogout}
+                                            disabled={logoutBusy}
+                                        >
+                                            <LogOut size={16} />
+                                            <span>{logoutBusy ? "Logging out..." : "Logout"}</span>
+                                        </button>
+                                    </div>
+                                 )}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* page content area */}
+                <main className="content" role="main">
+                    <div className="canvas">
+                        <div className="feed-container">
+                            {children}
+                        </div>
+                    </div>
+                </main>
             </div>
+        </div>
+    );
 
-        </header>
-
-      <main className="feed-container">
-        {children}
-      </main>
-
-    </div>
-  );
 }
 
 export default AppLayout;
