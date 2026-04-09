@@ -23,5 +23,9 @@ class Profile (models.Model):
 
     skills_wanted=models.TextField(blank=True, help_text="List the skills you are looking to learn")
 
+    profile_image = models.ImageField(upload_to="profiles/profile_pictures/", blank=True, null=True)
+
+    banner_image = models.ImageField(upload_to="profiles/profile_banners/", blank=True, null=True) 
+
     def __str__(self):
         return f"Profile of {self.user.email}"
