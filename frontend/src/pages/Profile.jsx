@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { startConversation } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Profile.css"; 
@@ -12,6 +14,26 @@ const STATES_AND_CITIES = {
     NY: ["New York City", "Buffalo", "Albany"], 
   } 
 
+const US_STATES = [
+  { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
+  { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
+  { code: 'CT', name: 'Connecticut' }, { code: 'DE', name: 'Delaware' }, { code: 'FL', name: 'Florida' },
+  { code: 'GA', name: 'Georgia' }, { code: 'HI', name: 'Hawaii' }, { code: 'ID', name: 'Idaho' },
+  { code: 'IL', name: 'Illinois' }, { code: 'IN', name: 'Indiana' }, { code: 'IA', name: 'Iowa' },
+  { code: 'KS', name: 'Kansas' }, { code: 'KY', name: 'Kentucky' }, { code: 'LA', name: 'Louisiana' },
+  { code: 'ME', name: 'Maine' }, { code: 'MD', name: 'Maryland' }, { code: 'MA', name: 'Massachusetts' },
+  { code: 'MI', name: 'Michigan' }, { code: 'MN', name: 'Minnesota' }, { code: 'MS', name: 'Mississippi' },
+  { code: 'MO', name: 'Missouri' }, { code: 'MT', name: 'Montana' }, { code: 'NE', name: 'Nebraska' },
+  { code: 'NV', name: 'Nevada' }, { code: 'NH', name: 'New Hampshire' }, { code: 'NJ', name: 'New Jersey' },
+  { code: 'NM', name: 'New Mexico' }, { code: 'NY', name: 'New York' }, { code: 'NC', name: 'North Carolina' },
+  { code: 'ND', name: 'North Dakota' }, { code: 'OH', name: 'Ohio' }, { code: 'OK', name: 'Oklahoma' },
+  { code: 'OR', name: 'Oregon' }, { code: 'PA', name: 'Pennsylvania' }, { code: 'RI', name: 'Rhode Island' },
+  { code: 'SC', name: 'South Carolina' }, { code: 'SD', name: 'South Dakota' }, { code: 'TN', name: 'Tennessee' },
+  { code: 'TX', name: 'Texas' }, { code: 'UT', name: 'Utah' }, { code: 'VT', name: 'Vermont' },
+  { code: 'VA', name: 'Virginia' }, { code: 'WA', name: 'Washington' }, { code: 'WV', name: 'West Virginia' },
+  { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }
+];
+
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [skills, setSkills] = useState([]);
@@ -19,6 +41,8 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
@@ -31,6 +55,12 @@ export default function Profile() {
   const [bannerPreview, setBannerPreview] = useState(null); 
   const [isEditingHeadline, setIsEditingHeadline] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false); 
+  const [editForm, setEditForm] = useState({ bio: "", location: "" });
+  const [chatLoading, setChatLoading] = useState(false);
+
+  const profileChatTargetId = Number(location.state?.targetUserId ?? profile?.user ?? 0);
+  const canMessageProfile =
+    Boolean(profileChatTargetId) && Number(profileChatTargetId) !== Number(user?.id);
 
   useEffect(() => {
     let isMounted = true;
@@ -137,6 +167,29 @@ export default function Profile() {
   };
 
   // Delete a skill
+  const handleInitiateChat = async (targetUserId) => {
+    if (!targetUserId) {
+      setError("We couldn't determine who to message from this profile.");
+      return;
+    }
+
+    try {
+      setChatLoading(true);
+      setError("");
+      const conv = await startConversation(targetUserId);
+      navigate("/chat", { state: { activeId: conv.id } });
+    } catch (err) {
+      console.error("Error starting conversation:", err);
+      setError(
+        err.response?.data?.detail ||
+        "Could not open a conversation right now. Please try again."
+      );
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // NEW: Delete a skill
   const handleDeleteSkill = async (skillId) => {
     if (!window.confirm("Are you sure you want to delete this skill?")) return;
 
@@ -601,4 +654,11 @@ export default function Profile() {
       </div>
     </div>
   );
-} 
+}
+
+const bannerStyle = (bg, color) => ({
+  backgroundColor: bg, color: color, padding: "10px", borderRadius: "6px", marginBottom: "15px", border: `1px solid ${color}55`, textAlign: "center"
+});
+const labelStyle = { margin: "0 0 5px 0", color: "#555" };
+const inputStyle = { width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minHeight: "38px" };
+const deleteBtnStyle = { position: "absolute", top: "10px", right: "10px", background: "none", border: "none", color: "#ef4444", fontSize: "1.2rem", cursor: "pointer" };

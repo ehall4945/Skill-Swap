@@ -98,4 +98,34 @@ class SkillAndSwapRequestApiTests(APITestCase):
         results = self.get_data_list(unrelated_response.data)
         unrelated_request_ids = [req['id'] for req in results]
         self.assertNotIn(swap_request.id, unrelated_request_ids)
+
+    def test_connections_endpoint_returns_only_accepted_other_users(self):
+        accepted_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=self.available_skill,
+            status=SwapRequest.STATUS_ACCEPTED,
+        )
+        SwapRequest.objects.create(
+            sender=self.third_user,
+            receiver=self.sender,
+            skill=self.my_skill,
+            status=SwapRequest.STATUS_PENDING,
+        )
+
+        self.client.force_authenticate(user=self.sender)
+        response = self.client.get("/api/connections/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = self.get_data_list(response.data)
+        connection_ids = [user["id"] for user in results]
+
+        self.assertIn(self.receiver.id, connection_ids)
+        self.assertNotIn(self.sender.id, connection_ids)
+        self.assertNotIn(self.third_user.id, connection_ids)
+        self.assertEqual(
+            connection_ids.count(self.receiver.id),
+            1,
+            msg=f"Expected one connection for accepted request {accepted_request.id}",
+        )
         

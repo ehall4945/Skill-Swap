@@ -1,9 +1,23 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .models import Skill, SwapRequest
+
+User = get_user_model()
 
 def get_display_name(user):
     full_name = user.get_full_name().strip() if hasattr(user, "get_full_name") else ""
     return full_name or user.email
+
+
+class ConnectionSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id", "email", "first_name", "last_name", "full_name"]
+
+    def get_full_name(self, obj):
+        return get_display_name(obj)
 
 class SkillSerializer(serializers.ModelSerializer):
     owner_name = serializers.SerializerMethodField()
@@ -85,3 +99,4 @@ class SwapRequestSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
 
         return attrs
+        
