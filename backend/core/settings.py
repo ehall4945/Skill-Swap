@@ -199,11 +199,14 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 CORS_ALLOW_CREDENTIALS = True
 
 
-CSRF_TRUSTED_ORIGINS = {
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:5174",
-}
+]
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media" 
@@ -218,15 +221,9 @@ if 'test' in sys.argv:
         }
     }
 
-# Channel Layers Configuration for WebSockets
+# Switched from Redis to InMemory for local Windows development
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [(
-                os.getenv('REDIS_HOST', 'redis'),
-                int(os.getenv('REDIS_PORT', '6379')),
-            )],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
