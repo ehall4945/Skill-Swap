@@ -6,14 +6,6 @@ import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Profile.css"; 
 
-const STATES_AND_CITIES = {
-    WI: ["Milwaukee", "Madison", "Green Bay"],
-    IL: ["Chicago", "Evanston", "Naperville"],
-    MN: ["Minneapolis", "St. Paul", "Duluth"],
-    CA: ["Los Angeles", "San Francisco", "San Diego"], 
-    NY: ["New York City", "Buffalo", "Albany"], 
-  } 
-
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
   { code: 'AR', name: 'Arkansas' }, { code: 'CA', name: 'California' }, { code: 'CO', name: 'Colorado' },
@@ -34,6 +26,9 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }
 ];
 
+const stateNameFromCode = (code) =>
+  US_STATES.find(s => s.code === code)?.name || code;
+
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [skills, setSkills] = useState([]);
@@ -46,7 +41,7 @@ export default function Profile() {
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ headline: "", bio: "", state: "", city: "", location: "" });
+  const [editForm, setEditForm] = useState({ headline: "", bio: "", location: "" });
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null); 
   const [avatarPreview, setAvatarPreview] = useState(null); 
@@ -55,7 +50,7 @@ export default function Profile() {
   const [bannerPreview, setBannerPreview] = useState(null); 
   const [isEditingHeadline, setIsEditingHeadline] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false); 
-  const [editForm, setEditForm] = useState({ bio: "", location: "" });
+  //const [editForm, setEditForm] = useState({ bio: "", location: "" });
   const [chatLoading, setChatLoading] = useState(false);
 
   const profileChatTargetId = Number(location.state?.targetUserId ?? profile?.user ?? 0);
@@ -82,25 +77,11 @@ export default function Profile() {
           setProfile(myProfile); 
         }
 
-        if (myProfile?.location) {
-          const [city, state] = myProfile.location.split(", ").map(s => s.trim());
-
-          setEditForm({
-            headline: myProfile.headline || "",
-            bio: myProfile.bio || "",
-            city: city || "",
-            state: state || "",
-            location: myProfile.location || "",
-          });
-        }  else {
-          setEditForm({
-            headline: myProfile.headline || "",
-            bio: myProfile.bio || "",
-            city: "",
-            state: "",
-            location: "",
-          }); 
-        }
+        setEditForm({
+          headline: myProfile?.headline || "",
+          bio: myProfile?.bio || "",
+          location: myProfile?.location || "",
+        });
 
         // Handle skills data which might also be an array or a single object
         const skillsData = skillsResponse.data.results ?? skillsResponse.data;
@@ -447,9 +428,11 @@ export default function Profile() {
                 {!isEditingLocation && (
                   <>
                     <p className="profile-location">
-                      {profile?.location || "Location not set."}
+                      {profile?.location
+                      ? stateNameFromCode(profile.location)
+                      : "Location not set."}
                     </p>
-
+                    
                     <button
                       className="edit-profile-btn"
                       onClick={ () => setIsEditingLocation(true) }
@@ -461,88 +444,64 @@ export default function Profile() {
 
                 {isEditingLocation && (
                   <>
-                    {/* select state */}
-                    <select 
-                      value={editForm.state}
-                      onChange={ (e) => setEditForm({
-                        ...editForm,
-                        state: e.target.value,
-                        city: "", 
-                        })
+                    <select
+                      value={editForm.location}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, location: e.target.value })
                       }
                       className="location-select"
-                      >
-                        <option value="">Select state</option>
-                        {Object.keys(STATES_AND_CITIES).map(state => (
-                          <option key={state} value={state}>
-                            {state}
-                          </option>
-                        ))} 
-                      </select>
-
-                      {/* select city */}
-                      <select 
-                        value={editForm.city}
-                        onChange={ (e) =>
-                          setEditForm({
-                            ...editForm,
-                            city: e.target.value,
-                          })
-                        }
-                        className="location-select"
-                        disabled={!editForm.state}
-                      >
-                        <option value="">Select city</option>
-                        {editForm.state &&
-                          STATES_AND_CITIES[editForm.state].map(city => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
-                      </select>
-
-                      {/* cancel */}
-                      <button className="secondary-btn" onClick={ () => {
+                    >
+                      <option value="">Select state</option>
+                      {US_STATES.map(({ code, name }) => (
+                        <option key={code} value={code}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                    
+                    <button
+                      className="secondary-btn"
+                      onClick={() => {
                         setEditForm({
                           ...editForm,
-                          state: "",
-                          city: "",
-                        }); 
+                          location: profile.location || "",
+                        });
                         setIsEditingLocation(false);
                       }}
-                      >
-                        Cancel
-                      </button>
-
-                      {/* save */}
-                      <button
-                        className="save-btn"
-                        disabled={!editForm.state || !editForm.city}
-                        onClick={async () => {
-                          const locationString = `${editForm.city}, ${editForm.state}`; 
-
-                          await api.patch(`/profiles/${profile.id}/`, {
-                            ...editForm,
-                            location:locationString,
-                          });
-
-                          setProfile({
-                            ...profile,
-                            location: locationString,
-                          });
-
-                          setIsEditingLocation(false);
-                        }}
-                      >
-                        Save
-                      </button>
+                    >
+                      Cancel
+                    </button>
+                    
+                    <button
+                      className="save-btn"
+                      disabled={!editForm.location}
+                      onClick={async () => {
+                        await api.patch(`/profiles/${profile.id}/`, {
+                          location: editForm.location,
+                        });
+                        
+                        setProfile({
+                          ...profile,
+                          location: editForm.location,
+                        });
+                        
+                        setIsEditingLocation(false);
+                      }}
+                    >
+                      Save
+                    </button>
                   </>
                 )}
               </div>
               
               <div className="profile-actions">
-                <button className="primary-btn">Messages</button>
-                <button className="secondary-btn">Marketplace</button>
+                <button className="primary-btn" onClick={() => navigate("/chat")}>
+                  Messages
+                </button>
+                
+                <button className="secondary-btn" onClick={() => navigate("/listings")}>
+                  Marketplace
+                </button>
               </div>
               
               <div className="profile-rating">
