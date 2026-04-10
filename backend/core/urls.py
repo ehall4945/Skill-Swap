@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenRefreshView
+from django.conf import settings
+from django.conf.urls.static import static
 
 from .views import (
     CustomTokenObtainPairView,
@@ -67,3 +69,7 @@ urlpatterns = [
     path('api/requests/', swap_request_list, name='swap-request-list-create'),
     path('api/requests/<int:pk>/', swap_request_detail, name='swap-request-detail'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    
