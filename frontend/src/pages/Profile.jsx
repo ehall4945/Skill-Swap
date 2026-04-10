@@ -4,7 +4,15 @@ import { startConversation } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
-import "./Dashboard.css"; 
+import "./Profile.css"; 
+
+const STATES_AND_CITIES = {
+    WI: ["Milwaukee", "Madison", "Green Bay"],
+    IL: ["Chicago", "Evanston", "Naperville"],
+    MN: ["Minneapolis", "St. Paul", "Duluth"],
+    CA: ["Los Angeles", "San Francisco", "San Diego"], 
+    NY: ["New York City", "Buffalo", "Albany"], 
+  } 
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -38,6 +46,15 @@ export default function Profile() {
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ headline: "", bio: "", state: "", city: "", location: "" });
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null); 
+  const [avatarPreview, setAvatarPreview] = useState(null); 
+  const [isEditingBanner, setIsEditingBanner] = useState(false);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null); 
+  const [isEditingHeadline, setIsEditingHeadline] = useState(false);
+  const [isEditingLocation, setIsEditingLocation] = useState(false); 
   const [editForm, setEditForm] = useState({ bio: "", location: "" });
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -61,14 +78,28 @@ export default function Profile() {
         const profileData = profileResponse.data.results ?? profileResponse.data;
         const myProfile = Array.isArray(profileData) ? profileData[0] : profileData;
 
-        if (myProfile?.id) {
-          setProfile(myProfile);
+        if(myProfile?.id) {
+          setProfile(myProfile); 
+        }
+
+        if (myProfile?.location) {
+          const [city, state] = myProfile.location.split(", ").map(s => s.trim());
+
           setEditForm({
+            headline: myProfile.headline || "",
             bio: myProfile.bio || "",
+            city: city || "",
+            state: state || "",
             location: myProfile.location || "",
           });
         }  else {
-          console.warn("Profile not found, but continuing to load skills...");
+          setEditForm({
+            headline: myProfile.headline || "",
+            bio: myProfile.bio || "",
+            city: "",
+            state: "",
+            location: "",
+          }); 
         }
 
         // Handle skills data which might also be an array or a single object
@@ -107,12 +138,12 @@ export default function Profile() {
     } 
   }, [location.state]);
 
-  // NEW: Handle typing in the input boxes
+  // Handle typing in the input boxes
   const handleChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  // NEW: Send the updated data to Django
+  // Send the updated data to Django
   const handleSave = async () => {
     // Check if we actually have an ID before sending
     if (!profile?.id) {
@@ -135,6 +166,7 @@ export default function Profile() {
     }
   };
 
+  // Delete a skill
   const handleInitiateChat = async (targetUserId) => {
     if (!targetUserId) {
       setError("We couldn't determine who to message from this profile.");
@@ -181,168 +213,444 @@ export default function Profile() {
       setTimeout(() => setError(""), 3000);  
     }
   };
+  
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const handleAvatarSave = async () => {
+    if(!avatarFile || !profile?.id) return;
+
+    try{
+      const formData = new FormData();
+      formData.append("profile_image", avatarFile);
+
+      const response = await api.patch(
+        `/profiles/${profile.id}/`,
+        formData, 
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setProfile(response.data);
+      setIsEditingAvatar(false);
+      setAvatarFile(null);
+      setAvatarPreview(null); 
+
+      setSuccess("Profile picture updated!");
+      setTimeout( () => setSuccess(""), 3000); 
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      setError("Failed ot update profile picture"); 
+    }
+  };
+
+  const handleAvatarCancel = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null); 
+    setIsEditingAvatar(false); 
+  }; 
+
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return; 
+
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
+  }; 
+
+  const handleBannerSave = async () => {
+    if (!bannerFile || !profile?.id) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("banner_image", bannerFile); 
+
+      const response = await api.patch(
+        `/profiles/${profile.id}/`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" }} 
+      ); 
+
+      setProfile(response.data); 
+      setIsEditingBanner(false); 
+      setBannerFile(null);
+      setBannerPreview(null); 
+
+      setSuccess("Banner Updated!"); 
+      setTimeout( () => setSuccess(""), 3000); 
+    } catch (err) {
+      console.error("Banner upload failed:", err);
+      setError("Failed to update banner."); 
+    }
+  }; 
+
+  const handleBannerCancel = () => {
+    setIsEditingBanner(false);
+    setBannerFile(null);
+    setBannerPreview(null); 
+  }; 
 
   if (loading) return <div className="section-card"><p>Loading your profile...</p></div>;
   if (!profile && !loading && !error && skills.length === 0) {
     return <div className="section-card"><p>No profile data found.</p></div>;
   }
-  
+
   return (
-    <div className="section-card">
-      {/* NEW: Integrated Error Banner */}
-      {error && (
-        <div style={{
-          backgroundColor: "#fee2e2",
-          color: "#b91c1c",
-          padding: "10px",
-          borderRadius: "6px",
-          marginBottom: "15px",
-          border: "1px solid #fecaca",
-          fontSize: "0.9rem",
-          textAlign: "center"
-        }}>
-          {error}
-        </div>
-      )}
+    <div className="profile-shell">
+      <div className="profile-page">
+        {/* Error and success banners */}
+        {error && <div className="banner-error">{error}</div>}
+        {success && <div className="banner-success">{success}</div>}
+      
+        {/* profile header */}
+        <section className="profile-header-card">
+          <div className="profile-banner">
+            {bannerPreview ? (
+              <img src={bannerPreview} alt="Banner preview" />
+            ) : profile?.banner_image ? (
+              <img src={profile.banner_image} alt="Profile banner" />
+            ) : null}
 
-      {/* NEW: Success Banner */}
-      {success && (
-        <div style={{
-          backgroundColor: "#dcfce7",
-          color: "#15803d",
-          padding: "10px",
-          borderRadius: "6px",
-          marginBottom: "15px",
-          border: "1px solid #bbf7d0",
-          fontSize: "0.9rem",
-          textAlign: "center"
-        }}>
-          {success}
-        </div>
-      )}
-
-
-      <div className="discover">
-        <header className="discover-header">
-          <h2>Your Profile</h2>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            {canMessageProfile && (
-              <button
-                onClick={() => handleInitiateChat(profileChatTargetId)}
-                className="add-skill-primary-action"
-                disabled={chatLoading}
-                style={{ padding: "5px 15px", opacity: chatLoading ? 0.8 : 1 }}
-              >
-                {chatLoading ? "Opening..." : "Message"}
-              </button>
-            )}
-            {isEditing ? (
-            <div>
-              <button 
-                onClick={handleSave} 
-                className="add-skill-primary-action" 
-                style={{ padding: "5px 15px" }}
-              >
-                Save
-              </button>
-              <button 
-                onClick={() => setIsEditing(false)} 
-                className="add-skill-secondary-action"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => setIsEditing(true)} 
-              className="add-skill-secondary-action"
-            >
-              Edit Profile
-            </button>
-          )}
-          </div>
-        </header>
-        
-        <div className="profile-details" style={{ marginTop: "20px" }}>
-          
-          <div style={{ marginBottom: "15px" }}>
-            <h3 style={{ margin: "0 0 5px 0", color: "#555" }}>Bio</h3>
-            {/* NEW: Show text area if editing, otherwise show regular text */}
-            {isEditing ? (
-              <textarea 
-                name="bio"
-                value={editForm.bio}
-                onChange={handleChange}
-                style={{ width: "100%", minHeight: "80px", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-              />
-            ) : (
-              <p style={{ margin: 0, lineHeight: "1.5" }}>
-                {profile?.bio || "You haven't written a bio yet. Tell the community about yourself!"}
-              </p>
-            )}
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <h3 style={{ margin: "0 0 5px 0", color: "#555" }}>Location</h3>
-            {/* NEW: Show input if editing, otherwise show regular text */}
-            {isEditing ? (
-              <select 
-                name="location" 
-                value={editForm.location} 
-                onChange={handleChange} 
-                style={inputStyle}
-              >
-                {US_STATES.map(state => (
-                  <option key={state.code} value={state.code}>{state.name}</option>
-                ))}
-              </select>
-            ) : (
-              <p style={{ margin: 0 }}>
-                {/* Helper: Shows 'Wisconsin' instead of just 'WI' */}
-                {US_STATES.find(s => s.code === profile?.location)?.name || profile?.location || "No location set."}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div style={{ marginTop: "28px" }}>
-          <h3 style={{ margin: "0 0 12px 0", color: "#555" }}>Your Skills</h3>
-
-          {skills.length === 0 ? (
-            <p style={{ margin: 0, color: "#64748B" }}>
-              You have not added any skills yet.
-            </p>
-          ) : (
-            <div className="discover-feed">
-              {skills.map((skill) => (
-                <article key={skill.id} className="skill-card" style={{ position: "relative" }}>
-                  {/* THE DELETE BUTTON */}
-                  <button
-                  onClick={() => handleDeleteSkill(skill.id)}
-                  style={{
-                    position: "absolute",
-                    top: "10px",
-                    right: "10px",
-                    background: "none",
-                    border: "none",
-                    color: "#ef4444",
-                    fontSize: "1.2rem",
-                    cursor: "pointer",
-                    fontWeight: "bold"
-                  }}
-                  title="Delete Skill"
-                >
-                  ×
+            <div className="banner-actions">
+              {!isEditingBanner && (
+                <button className="edit-profile-btn" onClick={ () => setIsEditingBanner(true)}>
+                  Edit
                 </button>
+              )}
 
-                <h3>{skill.title}</h3>
-                <p>{skill.description}</p>
-                <span className="skill-tag">{skill.category || "General"}</span>
-              </article>
+              {isEditingBanner && (
+                <>
+                  <label className="secondary-btn">
+                    Upload
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        hidden onChange={handleBannerChange}
+                      />
+                  </label>
+
+                  <button className="secondary-btn" onClick={handleBannerCancel}>
+                    Cancel
+                  </button>
+
+                  <button className="save-btn" onClick={handleBannerSave} disabled={!bannerFile}>
+                    Save
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="profile-avatar-wrapper">
+            <div className="avatar-circle">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Avatar preview" />
+                ) : profile?.profile_image ? (
+                <img src={profile.profile_image} alt="Profile avatar" />
+              ) : (
+              
+              <div className="avatar-placeholder" />
+              )}
+            </div>
+            
+            <div className="avatar-actions">
+              {!isEditingAvatar && (
+                <button className="edit-profile-btn" onClick={() => setIsEditingAvatar(true)}>
+                  Edit profile picture
+                </button>
+              )}
+              
+              {isEditingAvatar && (
+                <>
+                  <label className="secondary-btn">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      hidden
+                    />
+                  </label>
+                
+                  <button className="secondary-btn" onClick={handleAvatarCancel}>
+                    Cancel
+                  </button>
+                
+                  <button className="save-btn" onClick={handleAvatarSave} disabled={!avatarFile}>
+                    Save
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          
+        
+          <div className="profile-header-content">
+            <div className="profile-meta">
+              <h2 className="profile-name">
+                {profile?.first_name || "User"}
+              </h2>
+
+              <div className="headline-row">
+                {!isEditingHeadline && (
+                  <>
+                    <p className="profile-role">
+                    {profile?.headline || "Headline not set."}
+                    </p>
+
+                    <button className="edit-profile-btn" onClick={ () => setIsEditingHeadline(true) }>
+                      Edit
+                    </button>
+                  </>
+                )}
+
+                {isEditingHeadline && (
+                  <>
+                    <input 
+                      type="text"
+                      name="headline"
+                      value={editForm.headline}
+                      onChange={handleChange}
+                      className="headline-input"
+                      placeholder="Add a headline (e.g. Student)"
+                      autoFocus
+                    />
+
+                    <button className="secondary-btn" onClick={ () => {
+                        setEditForm({...editForm, headline: profile.headline || "",
+                        });
+                        setIsEditingHeadline(false); 
+                      }}
+                    >
+                      Cancel
+                    </button>
+
+                    <button className="save-btn" onClick={async () => {
+                      await handleSave();
+                      setIsEditingHeadline(false); 
+                      }}
+                    >
+                      Save
+                    </button>
+                  </>
+                )}
+              </div>
+              
+              <div className="location-row">
+                {!isEditingLocation && (
+                  <>
+                    <p className="profile-location">
+                      {profile?.location || "Location not set."}
+                    </p>
+
+                    <button
+                      className="edit-profile-btn"
+                      onClick={ () => setIsEditingLocation(true) }
+                    >
+                      Edit
+                    </button>
+                  </>
+                ) }
+
+                {isEditingLocation && (
+                  <>
+                    {/* select state */}
+                    <select 
+                      value={editForm.state}
+                      onChange={ (e) => setEditForm({
+                        ...editForm,
+                        state: e.target.value,
+                        city: "", 
+                        })
+                      }
+                      className="location-select"
+                      >
+                        <option value="">Select state</option>
+                        {Object.keys(STATES_AND_CITIES).map(state => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))} 
+                      </select>
+
+                      {/* select city */}
+                      <select 
+                        value={editForm.city}
+                        onChange={ (e) =>
+                          setEditForm({
+                            ...editForm,
+                            city: e.target.value,
+                          })
+                        }
+                        className="location-select"
+                        disabled={!editForm.state}
+                      >
+                        <option value="">Select city</option>
+                        {editForm.state &&
+                          STATES_AND_CITIES[editForm.state].map(city => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                      </select>
+
+                      {/* cancel */}
+                      <button className="secondary-btn" onClick={ () => {
+                        setEditForm({
+                          ...editForm,
+                          state: "",
+                          city: "",
+                        }); 
+                        setIsEditingLocation(false);
+                      }}
+                      >
+                        Cancel
+                      </button>
+
+                      {/* save */}
+                      <button
+                        className="save-btn"
+                        disabled={!editForm.state || !editForm.city}
+                        onClick={async () => {
+                          const locationString = `${editForm.city}, ${editForm.state}`; 
+
+                          await api.patch(`/profiles/${profile.id}/`, {
+                            ...editForm,
+                            location:locationString,
+                          });
+
+                          setProfile({
+                            ...profile,
+                            location: locationString,
+                          });
+
+                          setIsEditingLocation(false);
+                        }}
+                      >
+                        Save
+                      </button>
+                  </>
+                )}
+              </div>
+              
+              <div className="profile-actions">
+                <button className="primary-btn">Messages</button>
+                <button className="secondary-btn">Marketplace</button>
+              </div>
+              
+              <div className="profile-rating">
+                RATING #/10
+              </div>
+            </div>
+          </div>
+        </section>
+      
+        {/* about */}
+        <section className="profile-card">
+          <div className="card-header">
+            <h3>About</h3>
+            <div className="about-actions">
+              { !isEditing && (
+                <button className="edit-profile-btn" onClick={() => setIsEditing(true)}
+                >
+                Edit
+                </button>
+              )}
+              
+              { isEditing && (
+                <>
+                  <button className="secondary-btn" onClick={() => {
+                    setEditForm({
+                      bio: profile.bio || "",
+                      location: profile.location || "",
+                    });
+                    setIsEditing(false);
+                    }}
+                  >
+                  Cancel
+                  </button>
+                
+                  <button
+                    className="save-btn"
+                    onClick={handleSave}
+                  >
+                  Save
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <textarea
+            name="bio"
+            value={editForm.bio}
+            onChange={handleChange}
+            className="profile-textarea"
+            />
+            ) : (
+            <p className="profile-text">
+              {profile?.bio || "No bio added yet."}
+            </p>
+          )}
+        </section>
+      
+        {/* skills */}
+        <section className="profile-card">
+          <h3>Skills</h3>
+          {skills.length === 0 ? (
+            <p>No skills added yet.</p>
+          ) : (
+            <div className="skills-card-grid">
+              {skills.map(skill => (
+                <div key={skill.id} className="skill-card">
+                  <button 
+                  className="skill-delete" 
+                  onClick={ () => handleDeleteSkill(skill.id)}
+                  aria-label="Delete skill"
+                  >
+                    x
+                  </button>
+                  <h4 className="skill-title">{skill.title}</h4>
+                  {skill.description && (
+                    <p className="skill-description">
+                      {skill.description}
+                    </p>
+                  )}
+
+                  {skill.category && (
+                    <span className="skill-tag">
+                      {skill.category.toUpperCase()}
+                    </span>
+                  ) }
+                </div>
+              ) ) }
+            </div>
+          ) }
+        </section>
+      
+        {/* rating */}
+        <section className="profile-card ratings-card">
+          <h3>Ratings</h3>
+          <div className="ratings-grid">
+            {[1, 2, 3].map(i => (
+            <div key={i} className="rating-item">
+              <h4>Review title</h4>
+              <p>Review body</p>
+              <span className="review-meta">
+                Review date
+              </span>
+            </div>
             ))}
           </div>
-        )}
-        </div>
+        </section>
       </div>
     </div>
   );

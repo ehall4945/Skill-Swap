@@ -21,6 +21,7 @@ services:
     build: ./backend
     volumes:
       - ./backend:/app
+      - media:/app/media 
     ports:
       - "8000:8000"
     command: >
@@ -55,4 +56,5 @@ services:
 
 volumes:
   postgres_data:
+  media: 
   
