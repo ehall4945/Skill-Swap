@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 import AddSkill from "./pages/AddSkill";
 import Listings from "./pages/Listings";
 import SwapRequests from "./pages/SwapRequests";
+import RateUser from "./pages/RateUser";
 
 function App() {
   return (
@@ -89,6 +90,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/rate"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <RateUser />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+/>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
