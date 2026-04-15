@@ -148,9 +148,9 @@ function NewConversationModal({ onClose, onStart }) {
               <button 
                 className="ca-modal__action-btn" 
                 style={{ marginTop: '10px', padding: '8px 12px', cursor: 'pointer' }}
-                onClick={() => { navigate('/skills'); onClose(); }}
+                onClick={() => { navigate('/listings'); onClose(); }}
               >
-                Browse Skills
+                Browse Marketplace
               </button>
             </li>
           )}

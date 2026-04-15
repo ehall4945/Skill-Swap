@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "../layout/AppLayout.css";
 import "./Dashboard.css";
@@ -29,10 +29,10 @@ function getProviderName(skill) {
 }
 
 export default function Listings() {
+  const navigate = useNavigate();
   const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   
   // Filters & View State
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +41,6 @@ export default function Listings() {
 
   // Interaction State
   const [connectingSkillId, setConnectingSkillId] = useState(null);
-  const [requestedSkillIds, setRequestedSkillIds] = useState([]);
 
   // Fetch logic - triggers whenever showOnlyMine changes
   useEffect(() => {
@@ -82,15 +81,15 @@ export default function Listings() {
     try {
       setConnectingSkillId(skillId);
       setError("");
-      setSuccessMessage("");
 
       await api.post("requests/", {
         skill: skillId,
         receiver: receiverId, // Matches SwapRequestSerializer
       });
 
-      setRequestedSkillIds(prev => [...prev, skillId]);
-      setSuccessMessage("Swap request sent!");
+      navigate("/requests", {
+        state: { message: "Swap request sent! You can track it in My Swaps." },
+      });
     } catch (err) {
       setError(getApiErrorMessage(err, "Failed to send request."));
     } finally {
@@ -116,7 +115,6 @@ export default function Listings() {
       <section className="section-card">
         {/* Feedback Banners */}
         {error && <div className="listings-banner listings-banner--error">{error}</div>}
-        {successMessage && <div className="listings-banner listings-banner--success">{successMessage}</div>}
 
         <div className="discover">
           <header className="discover-header">
@@ -159,7 +157,6 @@ export default function Listings() {
           {/* Grid */}
           <div className="discover-feed">
             {filteredSkills.map((skill) => {
-              const isRequested = requestedSkillIds.includes(skill.id);
               const isConnecting = connectingSkillId === skill.id;
 
               return (
@@ -183,9 +180,9 @@ export default function Listings() {
                       <button
                         className="add-skill-primary-action skill-card__connect-button"
                         onClick={() => handleConnect(skill.id, skill.user)}
-                        disabled={isRequested || isConnecting}
+                        disabled={isConnecting}
                       >
-                        {isRequested ? "Requested" : isConnecting ? "Sending..." : "Connect"}
+                        {isConnecting ? "Sending..." : "Connect"}
                       </button>
                     )}
                   </div>

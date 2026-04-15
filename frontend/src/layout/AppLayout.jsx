@@ -16,18 +16,14 @@ import skillswap from '../images/Skillswap.png';
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
 import authService from "../services/authService"; 
-import { Bell, Home, UserCircle2, MessageSquare, PlusCircle, ListChecks, HeartHandshake, Settings, ChevronRight, LogOut, User, Repeat } from "lucide-react";
+import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat } from "lucide-react";
 
 const NAV_ITEMS = [
-    { to: "/", label: "Home", icon: Home, end: true },
-    { to: "/profile", label: "User Profile", icon: UserCircle2 },
+    { to: "/", label: "Dashboard", icon: Home, end: true },
     { to: "/listings", label: "Marketplace", icon: ListChecks },
-    { to: "/requests", label: "Swap Requests", icon: Repeat },
-    { to: "/add-skill", label: "Add Skill", icon: PlusCircle },
-    { to: "/chat", label: "Messages", icon: MessageSquare },
-    { to: "/notifications", label: "Notifications", icon: Bell },
-    { to: "/matches", label: "Matches", icon: HeartHandshake },
-    { to: "/settings", label: "Settings", icon: Settings },
+    { to: "/requests", label: "My Swaps", icon: Repeat },
+    { to: "/profile", label: "Profile", icon: UserCircle2 },
+    { to: "/chat", label: "Chat", icon: MessageSquare },
 ];
 
 function AppLayout({ children }) {
@@ -155,8 +151,8 @@ function AppLayout({ children }) {
 
                             {/* header actions */}
                             <div className="header-actions">
-                                <button className="icon-button" type="button" aria-label="Notifications" onClick={() => navigate("/requests")}>
-                                    <Bell strokeWidth = {1.8} />
+                                <button className="icon-button" type="button" aria-label="My Swaps" onClick={() => navigate("/requests")}>
+                                    <Repeat strokeWidth = {1.8} />
                                 </button>
                                 
                                 <button 
