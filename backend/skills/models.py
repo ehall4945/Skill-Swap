@@ -30,11 +30,13 @@ class SwapRequest(models.Model):
     STATUS_PENDING = "pending"
     STATUS_ACCEPTED = "accepted"
     STATUS_REJECTED = "rejected"
+    STATUS_WITHDRAWN = "withdrawn"
 
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending"),
         (STATUS_ACCEPTED, "Accepted"),
         (STATUS_REJECTED, "Rejected"),
+        (STATUS_WITHDRAWN, "Withdrawn"),
     ]
 
     sender = models.ForeignKey(
@@ -53,7 +55,7 @@ class SwapRequest(models.Model):
         related_name="swap_requests",
     )
     status = models.CharField(
-        max_length=8,
+        max_length=9,
         choices=STATUS_CHOICES,
         default=STATUS_PENDING,
     )

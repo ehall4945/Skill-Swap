@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from rest_framework import exceptions
 from rest_framework import generics, mixins, permissions, viewsets
 from .models import Skill, SwapRequest
+from .permissions import IsRequestParticipant
 from .serializers import ConnectionSerializer, SkillSerializer, SwapRequestSerializer
 
 User = get_user_model()
@@ -38,21 +40,52 @@ class SwapRequestViewSet(
     viewsets.GenericViewSet,
 ):
     serializer_class = SwapRequestSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsRequestParticipant]
 
     def get_queryset(self):
-        return (
+        queryset = (
             SwapRequest.objects
-            .filter(
-                Q(sender=self.request.user) |
-                Q(receiver=self.request.user)
-            )
             .select_related("sender", "receiver", "skill")
             .order_by("-created_at")
         )
 
+        if self.action == "list":
+            return queryset.filter(
+                Q(sender=self.request.user) |
+                Q(receiver=self.request.user)
+            )
+
+        return queryset
+
     def perform_create(self, serializer):
+        receiver = serializer.validated_data["receiver"]
+        if receiver == self.request.user:
+            raise exceptions.ValidationError({
+                "receiver": "You cannot send a swap request to yourself."
+            })
         serializer.save(sender=self.request.user)
+
+    def _validate_status_transition(self, instance, requested_status):
+        if requested_status is None:
+            return
+
+        if (
+            instance.status == SwapRequest.STATUS_ACCEPTED
+            and requested_status == SwapRequest.STATUS_PENDING
+        ):
+            raise exceptions.ValidationError({
+                "status": "Accepted requests cannot be changed back to pending."
+            })
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self._validate_status_transition(instance, request.data.get("status"))
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self._validate_status_transition(instance, request.data.get("status"))
+        return super().partial_update(request, *args, **kwargs)
 
 class ConnectionListView(generics.ListAPIView):
     serializer_class = ConnectionSerializer

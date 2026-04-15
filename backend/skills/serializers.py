@@ -72,28 +72,57 @@ class SwapRequestSerializer(serializers.ModelSerializer):
         sender = getattr(request, "user", None)
         receiver = attrs.get("receiver", self.instance.receiver if self.instance else None)
         skill = attrs.get("skill", self.instance.skill if self.instance else None)
+        status_value = attrs.get("status")
         errors = {}
 
-        # 1. Prevent self-swapping logic
-        if sender and receiver and sender.id == receiver.id:
-            if not self.instance:
+        if self.instance:
+            immutable_fields = {"sender", "receiver", "skill"} & set(self.initial_data.keys())
+            if immutable_fields:
+                errors["detail"] = "Only the request status can be updated after creation."
+
+            if (
+                status_value in {
+                    SwapRequest.STATUS_ACCEPTED,
+                    SwapRequest.STATUS_REJECTED,
+                }
+                and sender
+                and sender.id != self.instance.receiver_id
+            ):
+                errors["status"] = "Only the receiver can accept or reject this request."
+
+            if (
+                status_value == SwapRequest.STATUS_WITHDRAWN
+                and sender
+                and sender.id != self.instance.sender_id
+            ):
+                errors["status"] = "Only the sender can withdraw this request."
+        else:
+            # 1. Prevent self-swapping logic
+            if sender and receiver and sender.id == receiver.id:
                 errors["receiver"] = "You cannot send a swap request to yourself."
 
-        # 2. Ensure the skill actually belongs to the intended receiver
-        if skill and receiver and skill.user_id != receiver.id:
-            errors["receiver"] = "Receiver must own the selected skill."
+            # 2. Ensure the skill actually belongs to the intended receiver
+            if skill and receiver and skill.user_id != receiver.id:
+                errors["receiver"] = "Receiver must own the selected skill."
 
-        # 3. Check for existing pending requests to avoid duplicates
-        if (
-            sender
-            and skill
-            and SwapRequest.objects.filter(
-                sender=sender,
-                skill=skill,
-                status=SwapRequest.STATUS_PENDING,
-            ).exists()
-        ):
-            errors["skill"] = "You already have a pending request for this skill."
+            # 3. New requests must always start pending
+            if (
+                status_value is not None
+                and status_value != SwapRequest.STATUS_PENDING
+            ):
+                errors["status"] = "New swap requests must start in pending status."
+
+            # 4. Check for existing pending requests to avoid duplicates
+            if (
+                sender
+                and skill
+                and SwapRequest.objects.filter(
+                    sender=sender,
+                    skill=skill,
+                    status=SwapRequest.STATUS_PENDING,
+                ).exists()
+            ):
+                errors["skill"] = "You already have a pending request for this skill."
 
         if errors:
             raise serializers.ValidationError(errors)
