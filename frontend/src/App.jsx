@@ -15,6 +15,7 @@ import ChatApp from './components/ChatApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import AddSkill from "./pages/AddSkill";
 import Listings from "./pages/Listings";
 import SwapRequests from "./pages/SwapRequests";
@@ -55,6 +56,16 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <Profile />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <PublicProfile />
                 </AppLayout>
               </ProtectedRoute>
             }

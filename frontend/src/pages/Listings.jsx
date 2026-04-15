@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../services/api";
 import "../layout/AppLayout.css";
 import "./Dashboard.css";
@@ -171,6 +172,13 @@ export default function Listings() {
                   </div>
 
                   <div className="skill-card__footer">
+                    <Link
+                      to={`/profile/${skill.user}`}
+                      className="skill-card__profile-link"
+                    >
+                      View Profile
+                    </Link>
+
                     {!showOnlyMine && (
                       <button
                         className="add-skill-primary-action skill-card__connect-button"
