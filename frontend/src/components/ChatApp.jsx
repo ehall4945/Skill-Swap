@@ -8,6 +8,7 @@ import {
   fetchConversations,
   fetchMessages,
   startConversation,
+  blockUser,
 } from '../api/client';
 import './ChatApp.css';
 
@@ -89,18 +90,16 @@ function MessageBubble({ msg, isMine, isRead }) {
 // ── NewConversationModal ───────────────────────────────────────────
 
 function NewConversationModal({ onClose, onStart }) {
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState('');
+  const [users,   setUsers]   = useState([]);
+  const [search,  setSearch]  = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
-
     fetchConnections()
       .then(data => {
         if (!isMounted) return;
-        // Logic Fix: Handle DRF paginated 'results' or direct array
         const connectionList = Array.isArray(data) ? data : (data.results || []);
         setUsers(connectionList);
       })
@@ -111,10 +110,7 @@ function NewConversationModal({ onClose, onStart }) {
       .finally(() => {
         if (isMounted) setLoading(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const filtered = users.filter(u =>
@@ -128,7 +124,7 @@ function NewConversationModal({ onClose, onStart }) {
           <h3>New Conversation</h3>
           <button className="ca-icon-btn" onClick={onClose}>✕</button>
         </div>
-        
+
         {users.length > 0 && (
           <input
             className="ca-modal__search"
@@ -141,12 +137,12 @@ function NewConversationModal({ onClose, onStart }) {
 
         <ul className="ca-modal__list">
           {loading && <li className="ca-modal__empty">Loading connections...</li>}
-          
+
           {!loading && users.length === 0 && (
             <li className="ca-modal__empty">
               <p>No connections yet. You can only message users after a swap request is accepted.</p>
-              <button 
-                className="ca-modal__action-btn" 
+              <button
+                className="ca-modal__action-btn"
                 style={{ marginTop: '10px', padding: '8px 12px', cursor: 'pointer' }}
                 onClick={() => { navigate('/skills'); onClose(); }}
               >
@@ -176,12 +172,39 @@ function NewConversationModal({ onClose, onStart }) {
   );
 }
 
+// ── BlockConfirmModal ──────────────────────────────────────────────
+
+function BlockConfirmModal({ name, onConfirm, onClose }) {
+  return (
+    <div className="ca-modal-overlay" onClick={onClose}>
+      <div className="ca-modal ca-modal--sm" onClick={e => e.stopPropagation()}>
+        <div className="ca-modal__header">
+          <h3>Block {name}?</h3>
+          <button className="ca-icon-btn" onClick={onClose}>✕</button>
+        </div>
+        <div className="ca-modal__body">
+          <p>
+            This conversation will be hidden from both of you. Your message
+            history is preserved and will reappear if you unblock them.
+            You can manage blocked users from the blocked list.
+          </p>
+        </div>
+        <div className="ca-modal__footer">
+          <button className="ca-btn ca-btn--ghost" onClick={onClose}>Cancel</button>
+          <button className="ca-btn ca-btn--danger" onClick={onConfirm}>Block</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ChatWindow ─────────────────────────────────────────────────────
 
-function ChatWindow({ conversation, currentUser }) {
-  const [messages, setMessages] = useState([]);
-  const [input,     setInput]    = useState('');
-  const [readSet,  setReadSet]  = useState(new Set());
+function ChatWindow({ conversation, currentUser, onBlock }) {
+  const [messages,         setMessages]         = useState([]);
+  const [input,            setInput]            = useState('');
+  const [readSet,          setReadSet]          = useState(new Set());
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false);
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -236,6 +259,16 @@ function ChatWindow({ conversation, currentUser }) {
     }
   };
 
+  const handleBlockConfirm = async () => {
+    try {
+      await blockUser(conversation.other_participant.id);
+      setShowBlockConfirm(false);
+      onBlock(conversation.id);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!conversation) {
     return (
       <div className="ca-empty">
@@ -258,6 +291,18 @@ function ChatWindow({ conversation, currentUser }) {
             {connected ? 'Connected' : 'Reconnecting…'}
           </span>
         </div>
+
+        {/* Block button */}
+        <button
+          className="ca-icon-btn ca-block-btn"
+          onClick={() => setShowBlockConfirm(true)}
+          title={`Block ${name}`}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+          </svg>
+        </button>
       </div>
 
       <div className="ca-chat-window__messages">
@@ -292,6 +337,14 @@ function ChatWindow({ conversation, currentUser }) {
           </svg>
         </button>
       </div>
+
+      {showBlockConfirm && (
+        <BlockConfirmModal
+          name={name}
+          onConfirm={handleBlockConfirm}
+          onClose={() => setShowBlockConfirm(false)}
+        />
+      )}
     </div>
   );
 }
@@ -307,7 +360,6 @@ export default function ChatApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const handledActiveIdRef = useRef(null);
-
 
   useEffect(() => {
     fetchConversations().then(data => setConversations(data.results ?? data));
@@ -339,16 +391,38 @@ export default function ChatApp() {
     }
   };
 
+  // Remove blocked conversation from the list immediately
+  const handleBlock = (conversationId) => {
+    setConversations(prev => prev.filter(c => c.id !== conversationId));
+    setActiveConversation(null);
+  };
+
   return (
     <div className="ca-app">
       <aside className="ca-sidebar">
         <div className="ca-sidebar__header">
           <h2 className="ca-sidebar__title">Messages</h2>
-          <button className="ca-icon-btn ca-compose-btn" onClick={() => setShowModal(true)} title="New conversation">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
+          <div className="ca-sidebar__actions">
+            <button
+              className="ca-icon-btn"
+              onClick={() => navigate('/blocked')}
+              title="Blocked users"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+              </svg>
+            </button>
+            <button
+              className="ca-icon-btn ca-compose-btn"
+              onClick={() => setShowModal(true)}
+              title="New conversation"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="ca-sidebar__list">
@@ -368,7 +442,11 @@ export default function ChatApp() {
         <div className="ca-sidebar__footer">
           <Avatar name={user?.email} size={32} />
           <span className="ca-sidebar__user-email">{user?.email}</span>
-          <button className="ca-icon-btn ca-logout-btn" onClick={() => { logout(); navigate('/login'); }} title="Sign out">
+          <button
+            className="ca-icon-btn ca-logout-btn"
+            onClick={() => { logout(); navigate('/login'); }}
+            title="Sign out"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
               <polyline points="16 17 21 12 16 7"/>
@@ -379,7 +457,11 @@ export default function ChatApp() {
       </aside>
 
       <main className="ca-main">
-        <ChatWindow conversation={activeConversation} currentUser={user} />
+        <ChatWindow
+          conversation={activeConversation}
+          currentUser={user}
+          onBlock={handleBlock}
+        />
       </main>
 
       {showModal && (

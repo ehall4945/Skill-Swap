@@ -468,3 +468,74 @@
     border-radius: 0 0 var(--ca-radius-xl) var(--ca-radius-xl);
   }
 }
+
+/* Block button in chat header */
+.ca-block-btn {
+  margin-left: auto;
+  color: var(--ca-text-3) !important;
+}
+.ca-block-btn:hover {
+  color: var(--ca-red) !important;
+  background: #fef2f2 !important;
+}
+
+/* Sidebar header actions row */
+.ca-sidebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Small confirmation modal */
+.ca-modal--sm .ca-modal__body {
+  padding: 16px 20px;
+}
+.ca-modal--sm .ca-modal__body p {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ca-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--ca-border);
+}
+
+/* Buttons used inside modals */
+.ca-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.ca-btn--ghost {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid var(--ca-border);
+}
+.ca-btn--ghost:hover {
+  background: var(--ca-bg-hover);
+  border-color: var(--ca-border-h);
+  transform: translateY(-1px);
+}
+
+.ca-btn--danger {
+  background: #ef4444;
+  color: #ffffff;
+}
+.ca-btn--danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+}

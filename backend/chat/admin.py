@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Conversation, Message
+from .models import Conversation, Message, Block
+
+
+@admin.register(Block)
+class BlockAdmin(admin.ModelAdmin):
+    list_display = ['id', 'blocker', 'blocked_user', 'created_at']
+    search_fields = ['blocker__email', 'blocked_user__email']
+    list_filter = ['created_at']
 
 
 @admin.register(Conversation)
