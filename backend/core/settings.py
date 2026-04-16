@@ -51,8 +51,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'channels',
-    'chat',
-    'skills',
+    'chat.apps.ChatConfig',
+    'skills.apps.SkillsConfig',
+    'notifications.apps.NotificationsConfig',
 ]
 
 MIDDLEWARE = [

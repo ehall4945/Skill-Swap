@@ -15,13 +15,15 @@ import "./AppLayout.css";
 import skillswap from '../images/Skillswap.png'; 
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
+import NotificationBell from "../components/NotificationBell";
 import authService from "../services/authService"; 
-import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat } from "lucide-react";
+import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat, Bell } from "lucide-react";
 
 const NAV_ITEMS = [
     { to: "/", label: "Dashboard", icon: Home, end: true },
     { to: "/listings", label: "Marketplace", icon: ListChecks },
     { to: "/requests", label: "My Swaps", icon: Repeat },
+    { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/profile", label: "Profile", icon: UserCircle2 },
     { to: "/chat", label: "Chat", icon: MessageSquare },
 ];
@@ -154,6 +156,8 @@ function AppLayout({ children }) {
                                 <button className="icon-button" type="button" aria-label="My Swaps" onClick={() => navigate("/requests")}>
                                     <Repeat strokeWidth = {1.8} />
                                 </button>
+
+                                <NotificationBell />
                                 
                                 <button 
                                     ref={avatarBtnRef}

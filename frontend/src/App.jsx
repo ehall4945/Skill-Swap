@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import AddSkill from "./pages/AddSkill";
 import Listings from "./pages/Listings";
+import NotificationPage from "./pages/NotificationPage";
 import SwapRequests from "./pages/SwapRequests";
 
 function App() {
@@ -96,6 +97,16 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <SwapRequests />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <NotificationPage />
                 </AppLayout>
               </ProtectedRoute>
             }

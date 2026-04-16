@@ -308,11 +308,10 @@ export default function ChatApp() {
   const navigate = useNavigate();
   const handledActiveIdRef = useRef(null);
 
-
   useEffect(() => {
     fetchConversations().then(data => setConversations(data.results ?? data));
-  }, []);
-
+  }, [location.state]);
+  
   useEffect(() => {
     const incomingActiveId = Number(location.state?.activeId);
     if (!incomingActiveId || conversations.length === 0) return;
