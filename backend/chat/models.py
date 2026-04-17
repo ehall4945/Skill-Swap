@@ -2,6 +2,32 @@ from django.db import models
 from django.conf import settings
 
 
+class Block(models.Model):
+    """
+    Represents a block relationship between two users.
+    blocker has blocked blocked_user.
+    Chats persist in the DB — blocks only hide conversations in the UI.
+    """
+    blocker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='blocking',
+    )
+    blocked_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='blocked_by',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('blocker', 'blocked_user')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.blocker} blocked {self.blocked_user}"
+
+
 class Conversation(models.Model):
     participants = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

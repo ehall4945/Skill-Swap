@@ -1,13 +1,14 @@
 // frontend/src/api/client.js
-// Reuses your existing axios instance from services/api.js
 import api from '../services/api';
 
-// ── REST helpers ───────────────────────────────────────────────────
+// ── Connections ────────────────────────────────────────────────────
 
 export const fetchConnections = async () => {
   const res = await api.get('/connections/');
   return res.data;
 };
+
+// ── Conversations ──────────────────────────────────────────────────
 
 export const fetchConversations = async () => {
   const res = await api.get('/chat/conversations/');
@@ -24,9 +25,23 @@ export const fetchMessages = async (conversationId) => {
   return res.data;
 };
 
+// ── Blocks ─────────────────────────────────────────────────────────
+
+export const fetchBlockedUsers = async () => {
+  const res = await api.get('/chat/blocks/');
+  return res.data;
+};
+
+export const blockUser = async (userId) => {
+  const res = await api.post('/chat/blocks/block/', { blocked_user_id: userId });
+  return res.data;
+};
+
+export const unblockUser = async (userId) => {
+  await api.delete(`/chat/blocks/unblock/${userId}/`);
+};
+
 // ── WebSocket factory ──────────────────────────────────────────────
-// Passes the JWT as a query param since browsers can't set
-// custom headers on WebSocket connections.
 
 const WS_BASE = import.meta.env?.VITE_WS_URL ?? 'ws://localhost:8000';
 
