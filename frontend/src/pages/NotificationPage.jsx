@@ -1,12 +1,11 @@
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import NotificationCenter from "../components/NotificationCenter";
 import {
   getNotificationDestination,
   useNotifications,
 } from "../hooks/useNotifications";
-import "./Dashboard.css";
+import "./Notifications.css";
 
 export default function NotificationPage() {
   const navigate = useNavigate();
@@ -32,31 +31,25 @@ export default function NotificationPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl p-6">
-      {/* Header Section */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
-            <Bell size={20} />
+    <div className="notifications-container">
+      <header className="notifications-header">
+        <div className="header-title-group">
+          <div className="header-icon-box">
+            <Bell size={22} />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-              Notification Center
-            </p>
-            <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
+            <p className="header-text-label">Notification Center</p>
+            <h1 className="header-main-title">Notifications</h1>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-right">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Unread
-          </p>
-          <p className="text-xl font-semibold text-slate-900">{unreadCount}</p>
+        <div className="unread-stats-card">
+          <p className="header-text-label" style={{ marginBottom: '0px' }}>Unread</p>
+          <span className="unread-count-number">{unreadCount}</span>
         </div>
-      </div>
+      </header>
 
-      {/* This wrapper ensures everything inside NotificationCenter stays vertical */}
-      <div className="w-full">
+      <main className="notifications-list-wrapper">
         <NotificationCenter
           notifications={notifications}
           loading={loading}
@@ -65,7 +58,7 @@ export default function NotificationPage() {
           onSelect={handleOpenNotification}
           emptyMessage="Once people send swap requests or messages, they'll show up here."
         />
-      </div>
+      </main>
     </div>
   );
 }
