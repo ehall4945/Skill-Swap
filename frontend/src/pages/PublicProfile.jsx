@@ -179,7 +179,10 @@ export default function PublicProfile() {
         <section className="profile-header-card">
           <div className="profile-banner public-profile-banner">
             {profile.banner_image ? (
-              <img src={profile.banner_image} alt={`${displayName} banner`} />
+              <img
+              src={profile.banner_image.startsWith('http') ? profile.banner_image : `http://localhost:8000${profile.banner_image}`}
+              alt={`${displayName} banner`}
+              />
             ) : (
               <div className="public-profile-banner-placeholder" />
             )}
@@ -188,7 +191,10 @@ export default function PublicProfile() {
           <div className="profile-avatar-wrapper">
             <div className="avatar-circle">
               {profile.profile_image ? (
-                <img src={profile.profile_image} alt={`${displayName} avatar`} />
+                <img
+                src={profile.profile_image.startsWith('http') ? profile.profile_image : `http://localhost:8000${profile.profile_image}`}
+                alt={`${displayName} avatar`}
+                />
               ) : (
                 <div className="public-profile-avatar-fallback">{initials}</div>
               )}
