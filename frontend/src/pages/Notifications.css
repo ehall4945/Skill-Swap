@@ -1,143 +1,368 @@
 .notifications-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-    font-family: 'Inter', -apple-system, system-ui, sans-serif;
-    animation: fadeIn 0.4s ease-out;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  animation: nc-fadein 0.3s ease-out both;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes nc-fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── Header ─────────────────────────────────────────────── */
 
 .notifications-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #eef2f6;
-    margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 0.5px solid #e2e8f0;
+  margin-bottom: 8px;
 }
 
 .header-title-group {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header-icon-box {
-    background: #0f172a;
-    color: #ffffff;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.15);
+  width: 36px;
+  height: 36px;
+  background: #0f172a;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .header-text-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: #64748b;
-    margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 2px;
+  line-height: 1;
 }
 
 .header-main-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1;
+}
+
+/* ─── Header right: unread badge + action ─────────────────── */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .unread-stats-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 0.75rem 1.25rem;
-    border-radius: 16px;
-    text-align: right;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  border: 0.5px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 5px 12px;
+}
+
+.unread-pip-dot {
+  width: 6px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: opacity 0.3s;
+}
+
+.unread-pip-dot.hidden {
+  opacity: 0;
 }
 
 .unread-count-number {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #0f172a;
-    display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d4ed8;
+  line-height: 1;
 }
+
+.mark-all-read-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: 0.5px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.mark-all-read-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+/* ─── Section labels ──────────────────────────────────────── */
+
+.nc-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 16px 4px 6px;
+  margin: 0;
+}
+
+/* ─── Notification list ───────────────────────────────────── */
 
 .notifications-list-wrapper {
-    background: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    border: 1px solid #f1f5f9;
+  background: #ffffff;
+  border: 0.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 4px;
 }
 
-/* Vertical Stack Override */
-.notifications-list-wrapper > div {
-    display: flex !important;
-    flex-direction: column !important;
+/* ─── Individual row ──────────────────────────────────────── */
+
+.notification-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 12px;
+  padding: 12px 16px !important;
+  border-bottom: 0.5px solid #f1f5f9 !important;
+  background: #ffffff !important;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease;
+  text-align: left !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Item Polish & Layout */
-.notifications-list-wrapper .notification-item, 
-.notifications-list-wrapper [role="menuitem"] {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important; /* Forces text to the left */
-    text-align: left !important;
-    padding: 1.5rem 2rem !important;
-    border: none !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    background: transparent !important;
-    transition: background 0.2s ease;
+.notification-item:last-child {
+  border-bottom: none !important;
 }
 
-.notifications-list-wrapper .notification-item:last-child {
-    border-bottom: none !important;
+.notification-item:hover {
+  background: #f8fafc !important;
 }
 
-.notifications-list-wrapper .notification-item:hover {
-    background-color: #f8fafc !important;
+/* Unread state */
+.notification-item.unread,
+.notification-item[data-unread="true"] {
+  background: #f0f7ff !important;
 }
 
-/* Target internal text/icons inside the items */
-.notifications-list-wrapper .notification-item * {
-    text-align: left !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+.notification-item.unread:hover,
+.notification-item[data-unread="true"]:hover {
+  background: #e8f2ff !important;
 }
 
-/* Ensure icons and text stack correctly */
+/* Full-height left bar for unread rows */
+.notification-item.unread::before,
+.notification-item[data-unread="true"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #3b82f6;
+  border-radius: 0;
+}
+
+/* ─── Avatar ──────────────────────────────────────────────── */
+
+.notification-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: #e0e7ff;
+  color: #3730a3;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+/* ─── Row content ─────────────────────────────────────────── */
+
 .notification-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  flex: 1;
+  min-width: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px;
+}
+
+.notification-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 1px;
 }
 
 .notification-actor {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 1.05rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notification-time {
-    font-size: 0.8rem;
-    color: #94a3b8;
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin: 0 !important;
 }
 
 .notification-verb {
-    color: #475569;
-    font-size: 0.95rem;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+  margin: 0 !important;
 }
 
-.notifications-list-wrapper hr {
-    display: none !important;
+.notification-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-top: 4px;
 }
+
+.notification-type-badge svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ─── Empty state ─────────────────────────────────────────── */
+
+.nc-empty-state {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.nc-empty-icon {
+  width: 40px;
+  height: 40px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.nc-empty-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #94a3b8;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nc-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 6px;
+}
+
+.nc-empty-sub {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 280px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* ─── Loading skeleton ────────────────────────────────────── */
+
+.nc-skeleton-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid #f1f5f9;
+}
+
+.nc-skeleton-row:last-child {
+  border-bottom: none;
+}
+
+@keyframes nc-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.nc-skel {
+  border-radius: 4px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: nc-shimmer 1.4s infinite;
+}
+
+.nc-skel-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nc-skel-body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding-top: 3px; }
+.nc-skel-name { height: 12px; width: 120px; }
+.nc-skel-verb { height: 11px; width: 220px; }
+
+/* ─── Chevron ─────────────────────────────────────────────── */
+
+.notification-chevron {
+  flex-shrink: 0;
+  color: #cbd5e1;
+  margin-top: 6px;
+  transition: color 0.15s;
+}
+
+.notification-item:hover .notification-chevron {
+  color: #94a3b8;
+}
+
+/* ─── Suppress any stray hr or extra wrappers ─────────────── */
+.notifications-list-wrapper hr { display: none !important; }

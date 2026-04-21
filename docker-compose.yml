@@ -22,6 +22,8 @@ services:
     volumes:
       - ./backend:/app
       - media:/app/media 
+    environment:
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     command: >
@@ -57,4 +59,4 @@ services:
 volumes:
   postgres_data:
   media: 
-  
+

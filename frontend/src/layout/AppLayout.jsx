@@ -16,7 +16,7 @@ import skillswap from '../images/Skillswap.png';
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
-import authService from "../services/authService"; 
+import { useAuth } from "../context/AuthContext";
 import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat, Bell } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -29,42 +29,13 @@ const NAV_ITEMS = [
 ];
 
 function AppLayout({ children }) {
-    const [user, setUser] = useState(authService.getUser()); 
-    const [loadingUser, setLoadingUser] = useState(!authService.getUser());
+    const { user, logout, authLoading } = useAuth();
     const [logoutBusy, setLogoutBusy] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const dropdownRef = useRef(null); 
     const avatarBtnRef = useRef(null);
 
     const navigate = useNavigate();
-
-    /* Fetch logged-in user data */ 
-    useEffect(() => {
-        let alive = true;
-        async function loadCurrentUser() {
-            try{
-                setLoadingUser(true);
-                const data = await authService.getCurrentUser();
-                if(!alive) return;
-                setUser(data);
-                localStorage.setItem("user", JSON.stringify(data)); 
-            } catch (e){
-                if(!alive) return;
-                setUser(null);
-                localStorage.removeItem("user");
-            } finally {
-                if (alive) setLoadingUser(false);
-            }
-        }
-
-        if(authService.isAuthenticated()){
-            loadCurrentUser();
-        } else {
-            setLoadingUser(false);
-        }
-
-        return () => { alive = false; };
-    }, []);
 
     const greetingName = (user?.first_name && user.first_name.trim()) ||
                          (user?.name && user.name.trim()) ||
@@ -79,13 +50,12 @@ function AppLayout({ children }) {
         if(logoutBusy) return;
         setLogoutBusy(true);
         try{
-            authService.logout();
-            setUser(null);
+            logout();
             navigate("/login", { replace: true });
         } finally {
             setLogoutBusy(false);
         }
-    }, [logoutBusy, navigate]);
+    }, [logout, logoutBusy, navigate]);
 
     useEffect(() => {
         function onDocClick(e){
@@ -147,7 +117,7 @@ function AppLayout({ children }) {
                         <div className="header-bar-inner">
                             <div className="header-left">
                                 <div className="hello">
-                                    {loadingUser ? "Loading..." : helloText}
+                                    {authLoading ? "Loading..." : helloText}
                                 </div>
                             </div>
 
@@ -157,7 +127,7 @@ function AppLayout({ children }) {
                                     <Repeat strokeWidth = {1.8} />
                                 </button>
 
-                                <NotificationBell />
+                                {!authLoading && user ? <NotificationBell /> : null}
                                 
                                 <button 
                                     ref={avatarBtnRef}
