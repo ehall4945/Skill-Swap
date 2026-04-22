@@ -192,8 +192,10 @@ export const fetchConnections = async (config = {}) => {
   return res.data;
 };
 
-export const fetchConversations = async (config = {}) => {
-  const res = await api.get('/chat/conversations/', config);
+// ── Conversations ──────────────────────────────────────────────────
+
+export const fetchConversations = async () => {
+  const res = await api.get('/chat/conversations/');
   return res.data;
 };
 
@@ -207,7 +209,23 @@ export const fetchMessages = async (conversationId, config = {}) => {
   return res.data;
 };
 
-// --- WebSocket Factory ---
+// ── Blocks ─────────────────────────────────────────────────────────
+
+export const fetchBlockedUsers = async () => {
+  const res = await api.get('/chat/blocks/');
+  return res.data;
+};
+
+export const blockUser = async (userId) => {
+  const res = await api.post('/chat/blocks/block/', { blocked_user_id: userId });
+  return res.data;
+};
+
+export const unblockUser = async (userId) => {
+  await api.delete(`/chat/blocks/unblock/${userId}/`);
+};
+
+// ── WebSocket factory ──────────────────────────────────────────────
 
 export function createChatSocket(conversationId) {
   const token = encodeURIComponent(getStoredAccessToken() ?? '');

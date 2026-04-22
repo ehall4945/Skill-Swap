@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'chat.apps.ChatConfig',
     'skills.apps.SkillsConfig',
     'notifications.apps.NotificationsConfig',
+    'ratings',
 ]
 
 MIDDLEWARE = [

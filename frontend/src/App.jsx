@@ -20,6 +20,8 @@ import AddSkill from "./pages/AddSkill";
 import Listings from "./pages/Listings";
 import NotificationPage from "./pages/NotificationPage";
 import SwapRequests from "./pages/SwapRequests";
+import BlockedList from './pages/BlockedList';
+import RateUser from "./pages/RateUser";
 
 function App() {
   return (
@@ -48,6 +50,16 @@ function App() {
                 <AppLayout>
                   <ChatApp />
                 </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blocked"
+            element={
+              <ProtectedRoute>
+              <AppLayout>
+                <BlockedList />
+              </AppLayout>
               </ProtectedRoute>
             }
           />
@@ -107,6 +119,16 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <NotificationPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rate"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <RateUser />
                 </AppLayout>
               </ProtectedRoute>
             }

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Conversation, Message
+from .models import Conversation, Message, Block
 
 User = get_user_model()
 
@@ -62,4 +62,22 @@ class StartConversationSerializer(serializers.Serializer):
     def validate_user_id(self, value):
         if not User.objects.filter(pk=value).exists():
             raise serializers.ValidationError("User not found.")
+        return value
+
+
+class BlockSerializer(serializers.ModelSerializer):
+    blocked_user = UserSummarySerializer(read_only=True)
+    blocked_user_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = Block
+        fields = ['id', 'blocked_user', 'blocked_user_id', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_blocked_user_id(self, value):
+        request = self.context.get('request')
+        if not User.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("User not found.")
+        if request and value == request.user.pk:
+            raise serializers.ValidationError("You cannot block yourself.")
         return value
