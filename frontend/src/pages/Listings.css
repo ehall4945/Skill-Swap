@@ -162,6 +162,17 @@
   margin-top: 20px;
 }
 
+.skill-card__profile-link {
+  color: #22549F;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skill-card__profile-link:hover {
+  text-decoration: underline;
+}
+
 .skill-card__connect-button {
   min-width: 132px;
   box-shadow: none;

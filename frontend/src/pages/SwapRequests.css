@@ -74,6 +74,7 @@
 .status--pending { background: #fef3c7; color: #92400e; }
 .status--accepted { background: #dcfce7; color: #166534; }
 .status--rejected { background: #fee2e2; color: #991b1b; }
+.status--withdrawn { background: #e2e8f0; color: #334155; }
 
 /* Buttons */
 .action-group {
@@ -115,6 +116,14 @@ button:hover {
 .error-banner {
   background: #fee2e2;
   color: #b91c1c;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.success-banner {
+  background: #dcfce7;
+  color: #166534;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 20px;

@@ -15,58 +15,27 @@ import "./AppLayout.css";
 import skillswap from '../images/Skillswap.png'; 
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { NavLink, useNavigate } from "react-router-dom";
-import authService from "../services/authService"; 
-import { Bell, Home, UserCircle2, MessageSquare, PlusCircle, ListChecks, HeartHandshake, Settings, ChevronRight, LogOut, User, Repeat } from "lucide-react";
+import NotificationBell from "../components/NotificationBell";
+import { useAuth } from "../context/AuthContext";
+import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat, Bell } from "lucide-react";
 
 const NAV_ITEMS = [
-    { to: "/", label: "Home", icon: Home, end: true },
-    { to: "/profile", label: "User Profile", icon: UserCircle2 },
+    { to: "/", label: "Dashboard", icon: Home, end: true },
     { to: "/listings", label: "Marketplace", icon: ListChecks },
-    { to: "/requests", label: "Swap Requests", icon: Repeat },
-    { to: "/add-skill", label: "Add Skill", icon: PlusCircle },
-    { to: "/chat", label: "Messages", icon: MessageSquare },
+    { to: "/requests", label: "My Swaps", icon: Repeat },
     { to: "/notifications", label: "Notifications", icon: Bell },
-    { to: "/matches", label: "Matches", icon: HeartHandshake },
-    { to: "/settings", label: "Settings", icon: Settings },
+    { to: "/profile", label: "Profile", icon: UserCircle2 },
+    { to: "/chat", label: "Chat", icon: MessageSquare },
 ];
 
 function AppLayout({ children }) {
-    const [user, setUser] = useState(authService.getUser()); 
-    const [loadingUser, setLoadingUser] = useState(!authService.getUser());
+    const { user, logout, authLoading } = useAuth();
     const [logoutBusy, setLogoutBusy] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const dropdownRef = useRef(null); 
     const avatarBtnRef = useRef(null);
 
     const navigate = useNavigate();
-
-    /* Fetch logged-in user data */ 
-    useEffect(() => {
-        let alive = true;
-        async function loadCurrentUser() {
-            try{
-                setLoadingUser(true);
-                const data = await authService.getCurrentUser();
-                if(!alive) return;
-                setUser(data);
-                localStorage.setItem("user", JSON.stringify(data)); 
-            } catch (e){
-                if(!alive) return;
-                setUser(null);
-                localStorage.removeItem("user");
-            } finally {
-                if (alive) setLoadingUser(false);
-            }
-        }
-
-        if(authService.isAuthenticated()){
-            loadCurrentUser();
-        } else {
-            setLoadingUser(false);
-        }
-
-        return () => { alive = false; };
-    }, []);
 
     const greetingName = (user?.first_name && user.first_name.trim()) ||
                          (user?.name && user.name.trim()) ||
@@ -81,13 +50,12 @@ function AppLayout({ children }) {
         if(logoutBusy) return;
         setLogoutBusy(true);
         try{
-            authService.logout();
-            setUser(null);
+            logout();
             navigate("/login", { replace: true });
         } finally {
             setLogoutBusy(false);
         }
-    }, [logoutBusy, navigate]);
+    }, [logout, logoutBusy, navigate]);
 
     useEffect(() => {
         function onDocClick(e){
@@ -149,15 +117,17 @@ function AppLayout({ children }) {
                         <div className="header-bar-inner">
                             <div className="header-left">
                                 <div className="hello">
-                                    {loadingUser ? "Loading..." : helloText}
+                                    {authLoading ? "Loading..." : helloText}
                                 </div>
                             </div>
 
                             {/* header actions */}
                             <div className="header-actions">
-                                <button className="icon-button" type="button" aria-label="Notifications" onClick={() => navigate("/requests")}>
-                                    <Bell strokeWidth = {1.8} />
+                                <button className="icon-button" type="button" aria-label="My Swaps" onClick={() => navigate("/requests")}>
+                                    <Repeat strokeWidth = {1.8} />
                                 </button>
+
+                                {!authLoading && user ? <NotificationBell /> : null}
                                 
                                 <button 
                                     ref={avatarBtnRef}

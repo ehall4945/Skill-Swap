@@ -1,4 +1,11 @@
 import api from './api';
+import {
+  clearStoredAuth,
+  getStoredAccessToken,
+  getStoredUser,
+  storeAuthSession,
+  storeUser,
+} from '../api/client';
 
 const authService = {
   async register(email, firstName, lastName, password, passwordConfirm) {
@@ -19,37 +26,33 @@ const authService = {
     });
 
     const { access, refresh, user } = response.data;
-    localStorage.setItem('access_token', access);
-    localStorage.setItem('refresh_token', refresh);
-    localStorage.setItem('user', JSON.stringify(user));
+    storeAuthSession({ access, refresh, user });
 
     return { access, refresh, user };
   },
 
-  async getCurrentUser() {
-    const response = await api.get('/auth/me/');
+  async getCurrentUser(config = {}) {
+    const response = await api.get('/auth/me/', config);
+    storeUser(response.data);
     return response.data;
   },
 
   async updateProfile(userData) {
     const response = await api.put('/auth/me/update/', userData);
-    localStorage.setItem('user', JSON.stringify(response.data));
+    storeUser(response.data);
     return response.data;
   },
 
   logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
+    clearStoredAuth();
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem('access_token');
+    return !!getStoredAccessToken();
   },
 
   getUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    return getStoredUser();
   },
 };
 

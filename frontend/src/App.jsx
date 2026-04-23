@@ -15,8 +15,10 @@ import ChatApp from './components/ChatApp';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import AddSkill from "./pages/AddSkill";
 import Listings from "./pages/Listings";
+import NotificationPage from "./pages/NotificationPage";
 import SwapRequests from "./pages/SwapRequests";
 import BlockedList from './pages/BlockedList';
 import RateUser from "./pages/RateUser";
@@ -72,6 +74,16 @@ function App() {
             }
           />
           <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <PublicProfile />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/add-skill"
             element={
               <ProtectedRoute>
@@ -102,6 +114,16 @@ function App() {
             }
           />
           <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <NotificationPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/rate"
             element={
               <ProtectedRoute>
@@ -110,7 +132,7 @@ function App() {
                 </AppLayout>
               </ProtectedRoute>
             }
-/>
+          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

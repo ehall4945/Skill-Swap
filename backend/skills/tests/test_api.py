@@ -128,4 +128,143 @@ class SkillAndSwapRequestApiTests(APITestCase):
             1,
             msg=f"Expected one connection for accepted request {accepted_request.id}",
         )
-        
+
+    def test_unrelated_user_gets_forbidden_on_swap_request_detail(self):
+        swap_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=self.available_skill,
+        )
+
+        self.client.force_authenticate(user=self.third_user)
+        response = self.client.get(f"/api/requests/{swap_request.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_only_receiver_can_accept_or_reject_request(self):
+        swap_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=self.available_skill,
+        )
+
+        self.client.force_authenticate(user=self.sender)
+        forbidden_response = self.client.patch(
+            f"/api/requests/{swap_request.id}/",
+            {"status": SwapRequest.STATUS_ACCEPTED},
+            format="json",
+        )
+        self.assertEqual(forbidden_response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(user=self.receiver)
+        accepted_response = self.client.patch(
+            f"/api/requests/{swap_request.id}/",
+            {"status": SwapRequest.STATUS_ACCEPTED},
+            format="json",
+        )
+        self.assertEqual(accepted_response.status_code, status.HTTP_200_OK)
+
+        swap_request.refresh_from_db()
+        self.assertEqual(swap_request.status, SwapRequest.STATUS_ACCEPTED)
+
+    def test_only_sender_can_withdraw_or_delete_request(self):
+        withdraw_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=self.available_skill,
+        )
+        delete_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=Skill.objects.create(
+                user=self.receiver,
+                title="Piano Lessons",
+                description="Intro to chords.",
+                category="Music",
+            ),
+        )
+
+        self.client.force_authenticate(user=self.receiver)
+        forbidden_withdraw_response = self.client.patch(
+            f"/api/requests/{withdraw_request.id}/",
+            {"status": SwapRequest.STATUS_WITHDRAWN},
+            format="json",
+        )
+        self.assertEqual(
+            forbidden_withdraw_response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        forbidden_delete_response = self.client.delete(
+            f"/api/requests/{delete_request.id}/"
+        )
+        self.assertEqual(
+            forbidden_delete_response.status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+
+        self.client.force_authenticate(user=self.sender)
+        withdraw_response = self.client.patch(
+            f"/api/requests/{withdraw_request.id}/",
+            {"status": SwapRequest.STATUS_WITHDRAWN},
+            format="json",
+        )
+        self.assertEqual(withdraw_response.status_code, status.HTTP_200_OK)
+
+        withdraw_request.refresh_from_db()
+        self.assertEqual(withdraw_request.status, SwapRequest.STATUS_WITHDRAWN)
+
+        delete_response = self.client.delete(f"/api/requests/{delete_request.id}/")
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(
+            SwapRequest.objects.filter(pk=delete_request.id).exists()
+        )
+
+    def test_self_swap_request_is_rejected_on_create(self):
+        self.client.force_authenticate(user=self.sender)
+        response = self.client.post(
+            "/api/requests/",
+            {
+                "receiver": self.sender.id,
+                "skill": self.my_skill.id,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("receiver", response.data)
+
+    def test_non_pending_status_injection_is_rejected_on_create(self):
+        self.client.force_authenticate(user=self.sender)
+        response = self.client.post(
+            "/api/requests/",
+            {
+                "receiver": self.receiver.id,
+                "skill": self.available_skill.id,
+                "status": SwapRequest.STATUS_ACCEPTED,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("status", response.data)
+
+    def test_accepted_request_cannot_move_back_to_pending(self):
+        swap_request = SwapRequest.objects.create(
+            sender=self.sender,
+            receiver=self.receiver,
+            skill=self.available_skill,
+            status=SwapRequest.STATUS_ACCEPTED,
+        )
+
+        self.client.force_authenticate(user=self.receiver)
+        response = self.client.patch(
+            f"/api/requests/{swap_request.id}/",
+            {"status": SwapRequest.STATUS_PENDING},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        swap_request.refresh_from_db()
+        self.assertEqual(swap_request.status, SwapRequest.STATUS_ACCEPTED)

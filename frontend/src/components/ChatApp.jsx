@@ -2,11 +2,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ChatErrorBoundary from './ChatErrorBoundary';
 import { useChat } from '../hooks/useChat';
 import {
   fetchConnections,
   fetchConversations,
   fetchMessages,
+  isRequestCanceled,
   startConversation,
   blockUser,
 } from '../api/client';
@@ -28,11 +30,60 @@ function initials(name = '') {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
-// ── Avatar ─────────────────────────────────────────────────────────
+function normalizeConversationList(data) {
+  if (Array.isArray(data)) return data;
+  return data?.results ?? [];
+}
+
+function findConversationMatch(conversationList, targetId) {
+  return conversationList.find((conversation) =>
+    Number(conversation.id) === Number(targetId) ||
+    Number(conversation.other_participant?.id) === Number(targetId)
+  );
+}
+
+function normalizeMessage(message) {
+  if (!message) return message;
+  return {
+    ...message,
+    id: Number(message.id),
+    conversation: Number(message.conversation ?? message.conversation_id),
+    sender: message.sender
+      ? { ...message.sender, id: Number(message.sender.id) }
+      : null,
+  };
+}
+
+function sortMessages(left, right) {
+  const leftTime = new Date(left.created_at ?? 0).getTime();
+  const rightTime = new Date(right.created_at ?? 0).getTime();
+  if (leftTime !== rightTime) return leftTime - rightTime;
+  return Number(left.id) - Number(right.id);
+}
+
+/**
+ * Clears the 'activeId' from browser history state so a page refresh 
+ * doesn't force-open a conversation that was triggered by a notification.
+ */
+function clearNotificationState() {
+  try {
+    const { activeId, ...rest } = window.history.state?.usr ?? {};
+    if (activeId === undefined) return;
+    window.history.replaceState(
+      { ...window.history.state, usr: Object.keys(rest).length ? rest : null },
+      '',
+      window.location.href,
+    );
+  } catch (e) {
+    // Ignore sandbox errors
+  }
+}
+
+// ── UI Components ──────────────────────────────────────────────────
 
 function Avatar({ name, size = 38 }) {
-  const colors = ['#4f46e5','#0891b2','#059669','#d97706','#dc2626','#7c3aed','#db2777'];
-  const color  = colors[(name?.charCodeAt(0) ?? 0) % colors.length];
+  const colors = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#dc2626', '#7c3aed', '#db2777'];
+  const color = colors[(name?.charCodeAt(0) ?? 0) % colors.length];
   return (
     <div className="ca-avatar" style={{ width: size, height: size, background: color }}>
       {initials(name)}
@@ -40,13 +91,11 @@ function Avatar({ name, size = 38 }) {
   );
 }
 
-// ── ConversationItem ───────────────────────────────────────────────
-
 function ConversationItem({ conv, isActive, onClick }) {
-  const other   = conv.other_participant;
-  const name    = other?.full_name || other?.email || 'Unknown';
+  const other = conv.other_participant;
+  const name = other?.full_name || other?.email || 'Unknown';
   const lastMsg = conv.last_message;
-  const unread  = conv.unread_count ?? 0;
+  const unread = conv.unread_count ?? 0;
 
   return (
     <button className={`ca-conv-item ${isActive ? 'active' : ''}`} onClick={onClick}>
@@ -67,7 +116,21 @@ function ConversationItem({ conv, isActive, onClick }) {
   );
 }
 
-// ── Message bubble ─────────────────────────────────────────────────
+function SidebarSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="ca-conv-skeleton">
+          <div className="ca-skel ca-skel-avatar" />
+          <div className="ca-skel-body">
+            <div className="ca-skel ca-skel-name" style={{ width: `${55 + (i % 3) * 15}%` }} />
+            <div className="ca-skel ca-skel-preview" style={{ width: `${40 + (i % 4) * 12}%` }} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
 
 function MessageBubble({ msg, isMine, isRead }) {
   return (
@@ -87,8 +150,6 @@ function MessageBubble({ msg, isMine, isRead }) {
   );
 }
 
-// ── NewConversationModal ───────────────────────────────────────────
-
 function NewConversationModal({ onClose, onStart }) {
   const [users,   setUsers]   = useState([]);
   const [search,  setSearch]  = useState('');
@@ -96,21 +157,23 @@ function NewConversationModal({ onClose, onStart }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true;
-    fetchConnections()
+    const controller = new AbortController();
+    fetchConnections({ signal: controller.signal })
       .then(data => {
-        if (!isMounted) return;
-        const connectionList = Array.isArray(data) ? data : (data.results || []);
-        setUsers(connectionList);
+        if (!controller.signal.aborted) {
+          setUsers(Array.isArray(data) ? data : (data.results || []));
+        }
       })
       .catch(err => {
-        console.error("Failed to load connections:", err);
-        if (isMounted) setUsers([]);
+        if (!isRequestCanceled(err)) {
+          console.error('Failed to load connections:', err);
+          setUsers([]);
+        }
       })
       .finally(() => {
-        if (isMounted) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       });
-    return () => { isMounted = false; };
+    return () => controller.abort();
   }, []);
 
   const filtered = users.filter(u =>
@@ -124,7 +187,7 @@ function NewConversationModal({ onClose, onStart }) {
           <h3>New Conversation</h3>
           <button className="ca-icon-btn" onClick={onClose}>✕</button>
         </div>
-
+        
         {users.length > 0 && (
           <input
             className="ca-modal__search"
@@ -134,10 +197,9 @@ function NewConversationModal({ onClose, onStart }) {
             autoFocus
           />
         )}
-
         <ul className="ca-modal__list">
           {loading && <li className="ca-modal__empty">Loading connections...</li>}
-
+          
           {!loading && users.length === 0 && (
             <li className="ca-modal__empty">
               <p>No connections yet. You can only message users after a swap request is accepted.</p>
@@ -146,15 +208,10 @@ function NewConversationModal({ onClose, onStart }) {
                 style={{ marginTop: '10px', padding: '8px 12px', cursor: 'pointer' }}
                 onClick={() => { navigate('/skills'); onClose(); }}
               >
-                Browse Skills
+                Marketplace
               </button>
             </li>
           )}
-
-          {!loading && users.length > 0 && filtered.length === 0 && (
-            <li className="ca-modal__empty">No connections found</li>
-          )}
-
           {filtered.map(u => (
             <li key={u.id}>
               <button className="ca-modal__user-btn" onClick={() => onStart(u.id)}>
@@ -205,45 +262,88 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
   const [input,            setInput]            = useState('');
   const [readSet,          setReadSet]          = useState(new Set());
   const [showBlockConfirm, setShowBlockConfirm] = useState(false);
+  const [runtimeError,      setRuntimeError]    = useState(null);
   const endRef = useRef(null);
+
+  if (runtimeError) throw runtimeError;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
-    if (!conversation) return;
+    if (!conversation?.id) {
+      setMessages([]);
+      setReadSet(new Set());
+      return undefined;
+    }
+
+    const controller = new AbortController();
     setMessages([]);
-    fetchMessages(conversation.id).then(data => {
-      const msgs = data.results ?? data;
-      setMessages(msgs);
-      setReadSet(new Set(msgs.filter(m => m.is_read).map(m => m.id)));
-    });
+    setReadSet(new Set());
+    setRuntimeError(null);
+
+    fetchMessages(conversation.id, { signal: controller.signal })
+      .then(data => {
+        if (controller.signal.aborted) return;
+        const msgs = (data.results ?? data)
+          .map(normalizeMessage)
+          .sort(sortMessages);
+        setMessages(msgs);
+        setReadSet(new Set(msgs.filter(m => m.is_read).map(m => m.id)));
+      })
+      .catch(err => {
+        if (!isRequestCanceled(err)) {
+          console.error('Failed to load messages:', err);
+          setMessages([]);
+        }
+      });
+
+    return () => controller.abort();
   }, [conversation?.id]);
 
   const handleNewMessage = useCallback((msg) => {
-    setMessages(prev => prev.find(m => m.id === msg.id) ? prev : [...prev, msg]);
+    const nextMessage = normalizeMessage(msg);
+    if (!nextMessage?.id) return;
+
+    setMessages(prev => {
+      const existingIndex = prev.findIndex(
+        (current) => Number(current.id) === Number(nextMessage.id)
+      );
+      if (existingIndex >= 0) {
+        const merged = [...prev];
+        merged[existingIndex] = { ...merged[existingIndex], ...nextMessage };
+        return merged.sort(sortMessages);
+      }
+      return [...prev, nextMessage].sort(sortMessages);
+    });
   }, []);
 
   const handleReadReceipt = useCallback(({ reader_id }) => {
-    if (reader_id !== currentUser.id) {
+    if (Number(reader_id) !== Number(currentUser?.id)) {
       setReadSet(prev => {
         const next = new Set(prev);
+        // Optimistically mark all current messages as read when peer sends receipt
         setMessages(msgs => { msgs.forEach(m => next.add(m.id)); return msgs; });
         return next;
       });
     }
-  }, [currentUser.id]);
+  }, [currentUser?.id]);
+
+  const handleRuntimeError = useCallback((error) => {
+    setRuntimeError(error instanceof Error ? error : new Error('Chat runtime failure'));
+  }, []);
 
   const { connected, sendMessage, sendReadReceipt } = useChat(
     conversation?.id,
     handleNewMessage,
     handleReadReceipt,
+    handleRuntimeError,
   );
 
   useEffect(() => {
     if (conversation && messages.length > 0) sendReadReceipt();
-  }, [conversation?.id, messages.length]);
+  }, [conversation?.id, messages.length, sendReadReceipt]);
 
   const handleSend = () => {
     const text = input.trim();
@@ -279,7 +379,7 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
   }
 
   const other = conversation.other_participant;
-  const name  = other?.full_name || other?.email || 'Unknown';
+  const name = other?.full_name || other?.email || 'Unknown';
 
   return (
     <div className="ca-chat-window">
@@ -310,7 +410,7 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
           <MessageBubble
             key={msg.id}
             msg={msg}
-            isMine={msg.sender?.id === currentUser.id}
+            isMine={Number(msg.sender?.id) === Number(currentUser?.id)}
             isRead={readSet.has(msg.id) || msg.is_read}
           />
         ))}
@@ -320,7 +420,7 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
       <div className="ca-chat-window__input-row">
         <textarea
           className="ca-chat-window__input"
-          placeholder="Type a message… (Enter to send)"
+          placeholder="Type a message…"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -352,56 +452,123 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
 // ── Root ChatApp ───────────────────────────────────────────────────
 
 export default function ChatApp() {
-  const { user, logout }    = useAuth();
-  const [conversations,      setConversations]      = useState([]);
-  const [activeConversation, setActiveConversation] = useState(null);
-  const [showModal,          setShowModal]          = useState(false);
-
   const location = useLocation();
   const navigate = useNavigate();
-  const handledActiveIdRef = useRef(null);
-
-  useEffect(() => {
-    fetchConversations().then(data => setConversations(data.results ?? data));
-  }, []);
-
-  useEffect(() => {
-    const incomingActiveId = Number(location.state?.activeId);
-    if (!incomingActiveId || conversations.length === 0) return;
-    if (handledActiveIdRef.current === incomingActiveId) return;
-
-    const matchingConversation = conversations.find(
-      (conv) => Number(conv.id) === incomingActiveId
-    );
-
-    if (matchingConversation) {
-      setActiveConversation(matchingConversation);
-      handledActiveIdRef.current = incomingActiveId;
-    }
-  }, [conversations, location.state?.activeId]);
-
-  const handleStartConversation = async (userId) => {
-    try {
-      const conv = await startConversation(userId);
-      setConversations(prev => prev.find(c => c.id === conv.id) ? prev : [conv, ...prev]);
-      setActiveConversation(conv);
-      setShowModal(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  const { user, logout, authLoading } = useAuth();
+  
+  const [conversations, setConversations] = useState([]);
+  const [activeConversation, setActiveConversation] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [pendingActiveId, setPendingActiveId] = useState(() => location.state?.activeId ?? null);
+  const retriedTargetRef = useRef(null);
+  
   // Remove blocked conversation from the list immediately
   const handleBlock = (conversationId) => {
     setConversations(prev => prev.filter(c => c.id !== conversationId));
     setActiveConversation(null);
   };
+  
+  // Fetch initial conversations
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setConversations([]);
+      setActiveConversation(null);
+      setIsLoaded(true);
+      return;
+    }
 
+    const controller = new AbortController();
+    setIsLoaded(false);
+    fetchConversations({ signal: controller.signal })
+      .then(data => {
+        if (!controller.signal.aborted) {
+          setConversations(normalizeConversationList(data));
+        }
+      })
+      .catch(err => {
+        if (!isRequestCanceled(err)) setConversations([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoaded(true);
+      });
+    return () => controller.abort();
+  }, [authLoading, user]);
+
+  // Handle cross-navigation notification clicks
+  useEffect(() => {
+    if (location.state?.activeId) {
+      retriedTargetRef.current = null;
+      setPendingActiveId(location.state.activeId);
+    }
+  }, [location.key, location.state?.activeId]);
+
+  // Resolve pendingActiveId (Notification Logic)
+  useEffect(() => {
+    const targetId = pendingActiveId;
+    if (!targetId || !isLoaded || authLoading || !user) return;
+
+    const match = findConversationMatch(conversations, targetId);
+    if (match) {
+      setActiveConversation(match);
+      setPendingActiveId(null);
+      clearNotificationState();
+      return;
+    }
+
+    if (retriedTargetRef.current === targetId) {
+      setPendingActiveId(null);
+      return;
+    }
+
+    retriedTargetRef.current = targetId;
+    const controller = new AbortController();
+    fetchConversations({ signal: controller.signal })
+      .then(data => {
+        if (controller.signal.aborted) return;
+        const refreshed = normalizeConversationList(data);
+        setConversations(refreshed);
+        const retryMatch = findConversationMatch(refreshed, targetId);
+        if (retryMatch) {
+          setActiveConversation(retryMatch);
+          clearNotificationState();
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPendingActiveId(null);
+      });
+    return () => controller.abort();
+  }, [pendingActiveId, isLoaded, conversations, authLoading, user]);
+
+  const handleStartConversation = async (userId) => {
+    try {
+      const conv = await startConversation(userId);
+      setConversations(prev =>
+        prev.find(c => Number(c.id) === Number(conv.id)) ? prev : [conv, ...prev]
+      );
+      setActiveConversation(conv);
+      setShowModal(false);
+    } catch (err) {
+      console.error('Failed to start conversation:', err);
+    }
+  };
+  
+  if (authLoading) {
+    return (
+      <div className="ca-app">
+        <aside className="ca-sidebar"><div className="ca-sidebar__header"><h2 className="ca-sidebar__title">Messages</h2></div><div className="ca-sidebar__list"><SidebarSkeleton /></div></aside>
+        <main className="ca-main"><div className="ca-empty"><p>Loading your messages...</p></div></main>
+      </div>
+    );
+  }
+  
   return (
     <div className="ca-app">
       <aside className="ca-sidebar">
         <div className="ca-sidebar__header">
           <h2 className="ca-sidebar__title">Messages</h2>
+          
           <div className="ca-sidebar__actions">
             <button
               className="ca-icon-btn"
@@ -424,24 +591,22 @@ export default function ChatApp() {
             </button>
           </div>
         </div>
-
         <div className="ca-sidebar__list">
-          {conversations.length === 0 && (
-            <p className="ca-sidebar__empty">No conversations yet.<br/>Start one above ↑</p>
-          )}
+          {!isLoaded && <SidebarSkeleton />}
+          {isLoaded && conversations.length === 0 && <p className="ca-sidebar__empty">No conversations yet.</p>}
           {conversations.map(conv => (
             <ConversationItem
               key={conv.id}
               conv={conv}
-              isActive={activeConversation?.id === conv.id}
+              isActive={Number(activeConversation?.id) === Number(conv.id)}
               onClick={() => setActiveConversation(conv)}
             />
           ))}
         </div>
-
         <div className="ca-sidebar__footer">
-          <Avatar name={user?.email} size={32} />
+          <Avatar name={user?.full_name || user?.email} size={32} />
           <span className="ca-sidebar__user-email">{user?.email}</span>
+          
           <button
             className="ca-icon-btn ca-logout-btn"
             onClick={() => { logout(); navigate('/login'); }}
@@ -455,21 +620,12 @@ export default function ChatApp() {
           </button>
         </div>
       </aside>
-
       <main className="ca-main">
-        <ChatWindow
-          conversation={activeConversation}
-          currentUser={user}
-          onBlock={handleBlock}
-        />
+        <ChatErrorBoundary resetKey={activeConversation?.id ?? 'empty'}>
+          <ChatWindow conversation={activeConversation} currentUser={user} onBlock={handleBlock} />
+        </ChatErrorBoundary>
       </main>
-
-      {showModal && (
-        <NewConversationModal
-          onClose={() => setShowModal(false)}
-          onStart={handleStartConversation}
-        />
-      )}
+      {showModal && <NewConversationModal onClose={() => setShowModal(false)} onStart={handleStartConversation} />}
     </div>
   );
 }

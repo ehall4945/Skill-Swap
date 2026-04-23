@@ -296,7 +296,10 @@ export default function Profile() {
             {bannerPreview ? (
               <img src={bannerPreview} alt="Banner preview" />
             ) : profile?.banner_image ? (
-              <img src={profile.banner_image} alt="Profile banner" />
+              <img
+              src={profile.banner_image.startsWith('http') ? profile.banner_image : `http://localhost:8000${profile.banner_image}`}
+              alt="Profile banner"
+              />
             ) : null}
 
             <div className="banner-actions">
@@ -334,7 +337,10 @@ export default function Profile() {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar preview" />
                 ) : profile?.profile_image ? (
-                <img src={profile.profile_image} alt="Profile avatar" />
+                <img
+                src={profile.profile_image.startsWith('http') ? profile.profile_image : `http://localhost:8000${profile.profile_image}`}
+                alt="Profile avatar"
+                />
               ) : (
               
               <div className="avatar-placeholder" />
