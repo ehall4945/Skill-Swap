@@ -94,6 +94,16 @@ function App() {
             }
           />
           <Route
+            path="/skills/new"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <AddSkill />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/listings"
             element={
               <ProtectedRoute>

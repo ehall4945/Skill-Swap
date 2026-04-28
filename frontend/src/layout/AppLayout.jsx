@@ -17,11 +17,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
 import { useAuth } from "../context/AuthContext";
-import { Home, UserCircle2, MessageSquare, ListChecks, ChevronRight, LogOut, User, Repeat, Bell } from "lucide-react";
+import { Home, UserCircle2, MessageSquare, ListChecks, PlusCircle, ChevronRight, LogOut, User, Repeat, Bell } from "lucide-react";
 
 const NAV_ITEMS = [
     { to: "/", label: "Dashboard", icon: Home, end: true },
     { to: "/listings", label: "Marketplace", icon: ListChecks },
+    { to: "/skills/new", label: "Create Skill", icon: PlusCircle, end: true },
     { to: "/requests", label: "My Swaps", icon: Repeat },
     { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/profile", label: "Profile", icon: UserCircle2 },
