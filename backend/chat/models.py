@@ -69,8 +69,10 @@ class Message(models.Model):
     )
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='sent_messages',
+        null=True,
+        blank=True,
     )
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -80,4 +82,5 @@ class Message(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f"[{self.conversation_id}] {self.sender}: {self.content[:40]}"
+        sender_label = self.sender or "Deleted User"
+        return f"[{self.conversation_id}] {sender_label}: {self.content[:40]}"

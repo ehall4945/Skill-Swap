@@ -93,7 +93,7 @@ function Avatar({ name, size = 38 }) {
 
 function ConversationItem({ conv, isActive, onClick }) {
   const other = conv.other_participant;
-  const name = other?.full_name || other?.email || 'Unknown';
+  const name = other?.full_name || other?.email || 'Deleted User';
   const lastMsg = conv.last_message;
   const unread = conv.unread_count ?? 0;
 
@@ -379,7 +379,7 @@ function ChatWindow({ conversation, currentUser, onBlock }) {
   }
 
   const other = conversation.other_participant;
-  const name = other?.full_name || other?.email || 'Unknown';
+  const name = other?.full_name || other?.email || 'Deleted User';
 
   return (
     <div className="ca-chat-window">

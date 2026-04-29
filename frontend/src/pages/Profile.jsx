@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { startConversation } from "../api/client";
+import { deleteAccount, startConversation } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
@@ -37,7 +37,7 @@ export default function Profile() {
   const [success, setSuccess] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
@@ -52,6 +52,7 @@ export default function Profile() {
   const [isEditingLocation, setIsEditingLocation] = useState(false); 
   //const [editForm, setEditForm] = useState({ bio: "", location: "" });
   const [chatLoading, setChatLoading] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const profileChatTargetId = Number(location.state?.targetUserId ?? profile?.user ?? 0);
   const canMessageProfile =
@@ -277,6 +278,26 @@ export default function Profile() {
     setBannerFile(null);
     setBannerPreview(null); 
   }; 
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Delete your account permanently? This will remove your profile, skills, and swap requests. Your chat messages will remain visible to other users as sent by a deleted account."
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsDeletingAccount(true);
+      setError("");
+      await deleteAccount();
+      logout();
+      navigate("/register", { replace: true });
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      setError("We couldn't delete your account right now. Please try again.");
+      setIsDeletingAccount(false);
+    }
+  };
 
   if (loading) return <div className="section-card"><p>Loading your profile...</p></div>;
   if (!profile && !loading && !error && skills.length === 0) {
@@ -614,6 +635,25 @@ export default function Profile() {
               </span>
             </div>
             ))}
+          </div>
+        </section>
+
+        <section className="profile-card danger-zone-card">
+          <div className="danger-zone-header">
+            <div>
+              <h3>Danger Zone</h3>
+              <p className="danger-zone-copy">
+                Permanently delete your account, profile, skills, and swap requests.
+                Existing chat history stays available to the other participant as coming from a deleted account.
+              </p>
+            </div>
+            <button
+              className="danger-btn"
+              onClick={handleDeleteAccount}
+              disabled={isDeletingAccount}
+            >
+              {isDeletingAccount ? "Deleting..." : "Delete Account"}
+            </button>
           </div>
         </section>
       </div>

@@ -197,6 +197,10 @@ export const fetchConnections = async (config = {}) => {
   return res.data;
 };
 
+export const deleteAccount = async () => {
+  await api.delete('/profiles/delete-account/');
+};
+
 // ── Conversations ──────────────────────────────────────────────────
 
 export const fetchConversations = async () => {
