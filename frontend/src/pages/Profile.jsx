@@ -38,7 +38,7 @@ export default function Profile() {
   const [success, setSuccess] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth(); 
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
