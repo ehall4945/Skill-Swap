@@ -192,9 +192,18 @@ export default api;
 
 // --- API Methods ---
 
+export const createSkill = async (payload, config = {}) => {
+  const res = await api.post('/skills/', payload, config);
+  return res.data;
+};
+
 export const fetchConnections = async (config = {}) => {
   const res = await api.get('/connections/', config);
   return res.data;
+};
+
+export const deleteAccount = async () => {
+  await api.delete('/profiles/delete-account/');
 };
 
 // ── Conversations ──────────────────────────────────────────────────

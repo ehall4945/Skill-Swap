@@ -1,7 +1,10 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import status
 from .models import Profile
 from .serializers import ProfileSerializer, PublicProfileSerializer
 from skills.models import Skill
@@ -52,3 +55,10 @@ class PublicProfileViewSet(viewsets.ViewSet):
             "profile": PublicProfileSerializer(profile).data,
             "skills": SkillSerializer(skills, many=True).data,
         })
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    request.user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)

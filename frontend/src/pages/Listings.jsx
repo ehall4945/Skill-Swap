@@ -126,7 +126,15 @@ export default function Listings() {
             </div>
             
             <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                className="add-skill-primary-action"
+                onClick={() => navigate("/skills/new")}
+              >
+                Create New Skill
+              </button>
               <button 
+                type="button"
                 className="add-skill-primary-action" 
                 onClick={() => setShowOnlyMine(!showOnlyMine)}
               >
