@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Profile
 from .serializers import ProfileSerializer, PublicProfileSerializer
 from skills.models import Skill
@@ -13,6 +14,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     # Highly recommended to uncomment this so random people can't edit profiles!
     permission_classes = [permissions.IsAuthenticated]
+
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         """

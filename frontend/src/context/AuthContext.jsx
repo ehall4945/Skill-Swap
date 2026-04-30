@@ -14,6 +14,7 @@ import {
   getStoredUser,
   isRequestCanceled,
   clearStoredAuth,
+  storeUser, 
 } from '../api/client';
 
 const AuthContext = createContext(null);
@@ -57,8 +58,16 @@ export function AuthProvider({ children }) {
     try {
       // Validate the token by fetching the latest user profile
       const currentUser = await authService.getCurrentUser(config);
-      setUser(currentUser);
-      return currentUser;
+
+      const cachedUser = getStoredUser(); 
+
+      const mergedUser = {
+        ...currentUser,
+        profile_image: cachedUser?.profile_image ?? null, 
+      }; 
+
+      storeUser(mergedUser);
+      setUser(mergedUser);
     } catch (error) {
       if (isRequestCanceled(error)) {
         return null;

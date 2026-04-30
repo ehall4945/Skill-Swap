@@ -1,10 +1,11 @@
-import api from './api';
+import api, { storeTokenOnly } from '../api/client';
 import {
   clearStoredAuth,
   getStoredAccessToken,
   getStoredUser,
   storeAuthSession,
   storeUser,
+  fetchMyProfile, 
 } from '../api/client';
 
 const authService = {
@@ -23,17 +24,30 @@ const authService = {
     const response = await api.post('/auth/login/', {
       email,
       password,
-    });
+    }); 
 
     const { access, refresh, user } = response.data;
-    storeAuthSession({ access, refresh, user });
 
-    return { access, refresh, user };
+    storeTokenOnly({ access, refresh }); 
+
+    const profileList = await fetchMyProfile();
+
+    const profile = Array.isArray(profileList)
+      ? profileList[0]
+      : profileList; 
+
+    const mergedUser = {
+      ...user,
+      profile_image: profile?.profile_image ?? null,
+    };
+
+    storeAuthSession({ access, refresh, user: mergedUser }); 
+
+    return mergedUser;
   },
 
   async getCurrentUser(config = {}) {
     const response = await api.get('/auth/me/', config);
-    storeUser(response.data);
     return response.data;
   },
 

@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Profile.css"; 
+import { storeUser, getStoredUser } from "../api/client";
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -37,7 +38,7 @@ export default function Profile() {
   const [success, setSuccess] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
@@ -50,6 +51,7 @@ export default function Profile() {
   const [bannerPreview, setBannerPreview] = useState(null); 
   const [isEditingHeadline, setIsEditingHeadline] = useState(false);
   const [isEditingLocation, setIsEditingLocation] = useState(false); 
+  const [isEditMode, setIsEditMode] = useState(false); 
   //const [editForm, setEditForm] = useState({ bio: "", location: "" });
   const [chatLoading, setChatLoading] = useState(false);
 
@@ -125,27 +127,41 @@ export default function Profile() {
   };
 
   // Send the updated data to Django
-  const handleSave = async () => {
-    // Check if we actually have an ID before sending
-    if (!profile?.id) {
-      setError("Profile ID not found. Please refresh.");
-      return;
-    }
+  const resetEditFormFromProfile = () => {
+    setEditForm({
+      headline: profile?.headline || "",
+      bio: profile?.bio || "",
+      location: profile?.location || "",
+    }); 
+  }; 
 
-    try {
-      const response = await api.patch(`/profiles/${profile.id}/`, editForm);
+  const saveProfileFieldsFormData = async (fields, onDone) => {
+    if (!profile?.id) return;
+
+    const formData = new FormData();
+    Object.entries(fields).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, value); 
+      }
+    });
+
+    try{
+      const response = await api.patch(
+        `/profiles/${profile.id}/`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data"} }
+      ); 
+
       setProfile(response.data);
-      setIsEditing(false);
-      setError(""); // Clear any old errors
-
-      // Show success message
+      setError("");
       setSuccess("Profile updated successfully!");
-      setTimeout(() => setSuccess(""), 3000);
+      setTimeout( () => setSuccess(""), 3000);
+      onDone?.();
     } catch (err) {
-      console.error("Error saving profile:", err);
-      setError("Failed to save changes. Please try again.");
+      console.error("Error saving profile:", err.response?.data || err);
+      setError("Failed to save changes. Please try again."); 
     }
-  };
+  }; 
 
   // Delete a skill
   const handleInitiateChat = async (targetUserId) => {
@@ -212,24 +228,29 @@ export default function Profile() {
       const response = await api.patch(
         `/profiles/${profile.id}/`,
         formData, 
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
 
       setProfile(response.data);
+
+      const updatedAuthUser = {
+        ...getStoredUser(),
+        profile_image: response.data.profile_image,
+      };
+
+      storeUser(updatedAuthUser);
+      setUser(updatedAuthUser); 
+
       setIsEditingAvatar(false);
       setAvatarFile(null);
-      setAvatarPreview(null); 
-
+      setAvatarPreview(null);
+      
       setSuccess("Profile picture updated!");
-      setTimeout( () => setSuccess(""), 3000); 
+      setTimeout( () => setSuccess(""), 3000);
     } catch (err) {
-      console.error("Avatar upload error:", err);
-      setError("Failed ot update profile picture"); 
-    }
+      console.error("Avatar upload error:", err); 
+      setError("Failed to update profile picture"); 
+    } 
   };
 
   const handleAvatarCancel = () => {
@@ -285,10 +306,28 @@ export default function Profile() {
 
   return (
     <div className="profile-shell">
-      <div className="profile-page">
+      <div className="profile-page"> 
         {/* Error and success banners */}
         {error && <div className="banner-error">{error}</div>}
         {success && <div className="banner-success">{success}</div>}
+
+        {isEditMode && (
+          <div className="profile-edit-actions">
+            <button
+              className="secondary-btn"
+                onClick={ () => {
+                  setIsEditMode(false);
+                  setIsEditingAvatar(false);
+                  setIsEditingBanner(false);
+                  setIsEditingHeadline(false);
+                  setIsEditingLocation(false);
+                  setIsEditing(false); 
+              } }
+            >
+              Done editing 
+            </button>
+          </div>
+        )}
       
         {/* profile header */}
         <section className="profile-header-card">
@@ -303,7 +342,7 @@ export default function Profile() {
             ) : null}
 
             <div className="banner-actions">
-              {!isEditingBanner && (
+              {isEditMode && !isEditingBanner && (
                 <button className="edit-profile-btn" onClick={ () => setIsEditingBanner(true)}>
                   Edit
                 </button>
@@ -347,14 +386,19 @@ export default function Profile() {
               )}
             </div>
             
-            <div className="avatar-actions">
-              {!isEditingAvatar && (
-                <button className="edit-profile-btn" onClick={() => setIsEditingAvatar(true)}>
-                  Edit profile picture
+            <div className="avatar-actions"> 
+              {!isEditMode && (
+                <button className="edit-profile-btn" 
+                  onClick={ () => {
+                    setIsEditMode(true);
+                    setIsEditingAvatar(true); 
+                  } }
+                >
+                  Edit profile
                 </button>
               )}
               
-              {isEditingAvatar && (
+              {isEditMode && isEditingAvatar && (
                 <>
                   <label className="secondary-btn">
                     Upload
@@ -386,19 +430,21 @@ export default function Profile() {
               </h2>
 
               <div className="headline-row">
-                {!isEditingHeadline && (
+                {!isEditingHeadline ? (
                   <>
                     <p className="profile-role">
                     {profile?.headline || "Headline not set."}
                     </p>
 
-                    <button className="edit-profile-btn" onClick={ () => setIsEditingHeadline(true) }>
-                      Edit
-                    </button>
+                    {isEditMode && (
+                      <button className="edit-profile-btn" 
+                        onClick={ () => setIsEditingHeadline(true) }
+                      >
+                        Edit
+                      </button>
+                    ) }
                   </>
-                )}
-
-                {isEditingHeadline && (
+                ) : (
                   <>
                     <input 
                       type="text"
@@ -409,46 +455,47 @@ export default function Profile() {
                       placeholder="Add a headline (e.g. Student)"
                       autoFocus
                     />
-
+                    
                     <button className="secondary-btn" onClick={ () => {
-                        setEditForm({...editForm, headline: profile.headline || "",
-                        });
+                        resetEditFormFromProfile(); 
                         setIsEditingHeadline(false); 
                       }}
                     >
                       Cancel
                     </button>
 
-                    <button className="save-btn" onClick={async () => {
-                      await handleSave();
-                      setIsEditingHeadline(false); 
+                    <button className="save-btn" onClick={ () => {
+                      saveProfileFieldsFormData(
+                        { headline: editForm.headline },
+                          () => setIsEditingHeadline(false) 
+                        ) 
                       }}
                     >
                       Save
                     </button>
                   </>
-                )}
+                ) }
               </div>
               
               <div className="location-row">
-                {!isEditingLocation && (
+                {!isEditingLocation ? (
                   <>
                     <p className="profile-location">
                       {profile?.location
                       ? stateNameFromCode(profile.location)
                       : "Location not set."}
                     </p>
-                    
-                    <button
+
+                    {isEditMode && (
+                      <button
                       className="edit-profile-btn"
                       onClick={ () => setIsEditingLocation(true) }
                     >
                       Edit
                     </button>
+                    )} 
                   </>
-                ) }
-
-                {isEditingLocation && (
+                ) : (
                   <>
                     <select
                       value={editForm.location}
@@ -464,40 +511,31 @@ export default function Profile() {
                         </option>
                       ))}
                     </select>
-                    
+
                     <button
                       className="secondary-btn"
                       onClick={() => {
-                        setEditForm({
-                          ...editForm,
-                          location: profile.location || "",
-                        });
+                        resetEditFormFromProfile(); 
                         setIsEditingLocation(false);
                       }}
                     >
                       Cancel
                     </button>
-                    
+
                     <button
                       className="save-btn"
                       disabled={!editForm.location}
-                      onClick={async () => {
-                        await api.patch(`/profiles/${profile.id}/`, {
-                          location: editForm.location,
-                        });
-                        
-                        setProfile({
-                          ...profile,
-                          location: editForm.location,
-                        });
-                        
-                        setIsEditingLocation(false);
-                      }}
+                      onClick={ () => 
+                        saveProfileFieldsFormData(
+                          { location: editForm.location },
+                          () => setIsEditingLocation(false)
+                        )
+                      }
                     >
                       Save
                     </button>
                   </>
-                )}
+                ) }
               </div>
               
               <div className="profile-actions">
@@ -522,7 +560,7 @@ export default function Profile() {
           <div className="card-header">
             <h3>About</h3>
             <div className="about-actions">
-              { !isEditing && (
+              {!isEditing && isEditMode && (
                 <button className="edit-profile-btn" onClick={() => setIsEditing(true)}
                 >
                 Edit
@@ -532,10 +570,7 @@ export default function Profile() {
               { isEditing && (
                 <>
                   <button className="secondary-btn" onClick={() => {
-                    setEditForm({
-                      bio: profile.bio || "",
-                      location: profile.location || "",
-                    });
+                    resetEditFormFromProfile(); 
                     setIsEditing(false);
                     }}
                   >
@@ -544,7 +579,12 @@ export default function Profile() {
                 
                   <button
                     className="save-btn"
-                    onClick={handleSave}
+                    onClick={ () =>
+                      saveProfileFieldsFormData(
+                        { bio: editForm.bio },
+                        () => setIsEditing(false)
+                      )
+                    }
                   >
                   Save
                   </button>
