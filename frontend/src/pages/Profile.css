@@ -190,6 +190,12 @@
     margin-top: 16px;
 }
 
+.profile-edit-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px; 
+} 
+
 .headline-input {
     width: 100%;
     max-width: 420px;

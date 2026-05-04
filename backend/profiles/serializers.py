@@ -2,6 +2,17 @@ from rest_framework import serializers
 from .models import Profile
 
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(
+        use_url=True,
+        allow_null=True,
+        required=False,
+    )
+    banner_image = serializers.ImageField(
+        use_url=True,
+        allow_null=True,
+        required=False, 
+    )
+
     owner_name = serializers.ReadOnlyField(source='user.email')
     email = serializers.CharField(source='user.email', read_only=True)
     first_name = serializers.CharField(source="user.first_name", read_only=True)

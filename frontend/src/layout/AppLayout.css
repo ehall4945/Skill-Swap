@@ -170,6 +170,7 @@ html, body, #root {
   color: #0F172A; 
 }
 
+/* Avatar */
 .avatar{
   width: 28px;
   height: 28px;
@@ -179,6 +180,14 @@ html, body, #root {
   place-items: center;
   font-weight: 800;
   color: #3B2FA3;
+}
+
+.avatar-image {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
 }
 
 .icon-button,
@@ -298,6 +307,14 @@ html, body, #root {
 
 .profile-menu-item.danger:hover {
   background: #FEF2F2;
+}
+
+.profile-avatar-image {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
 }
 
 /* Center feed container */

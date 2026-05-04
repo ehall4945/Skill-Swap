@@ -91,6 +91,11 @@ export function isRequestCanceled(error) {
   );
 }
 
+export function storeTokenOnly({ access, refresh}) {
+  if (access) writeStorage(ACCESS_TOKEN_KEY, access); 
+  if (refresh) writeStorage(REFRESH_TOKEN_KEY, refresh); 
+}
+
 // --- API Client Setup ---
 
 const api = axios.create({
@@ -240,3 +245,10 @@ export function createChatSocket(conversationId) {
   const token = encodeURIComponent(getStoredAccessToken() ?? '');
   return new WebSocket(`${WS_BASE}/ws/chat/${conversationId}/?token=${token}`);
 }
+
+// ── Profile ──────────────────────────────────────────────
+export const fetchMyProfile = async (config = {}) => {
+  const res = await api.get('/profiles/', config);
+  // API returns an array with ONLY the logged-in user's profile
+  return res.data?.[0] ?? null;
+}; 

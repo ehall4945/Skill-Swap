@@ -47,6 +47,15 @@ function AppLayout({ children }) {
 
     const avatarLetter = (user?.first_name?.[0] || user?.username?.[0] || "U").toUpperCase();
 
+    const rawAvatar = user?.profile_image;
+    
+    const avatarUrl =
+        rawAvatar && rawAvatar.trim() !== ""
+        ? rawAvatar.startsWith("http")
+            ? rawAvatar
+            : `${import.meta.env.VITE_API_URL.replace("/api", "")}${rawAvatar}`
+        : null;
+
     const handleLogout = useCallback(() => {
         if(logoutBusy) return;
         setLogoutBusy(true);
@@ -139,7 +148,18 @@ function AppLayout({ children }) {
                                     aria-controls="profile-menu"
                                     onClick={() => setProfileOpen((v) => !v)}
                                 >
-                                    <span className="avatar">{avatarLetter}</span>
+                                    {avatarUrl ? (
+                                        <img
+                                            src={avatarUrl}
+                                            alt="User avatar"
+                                            className="avatar avatar-image"
+                                            onError={ (e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            } }
+                                        />
+                                        ) : (
+                                            <span className="avatar">{avatarLetter}</span>
+                                        ) }
                                 </button> 
 
                                 {profileOpen && (
@@ -151,7 +171,17 @@ function AppLayout({ children }) {
                                         ref={dropdownRef}
                                         >
                                         <div className="profile-menu-header"> 
-                                            <div className="profile-initial">{avatarLetter}</div> 
+                                            <div className="profile-initial">
+                                                {avatarUrl ? (
+                                                    <img 
+                                                        src={avatarUrl}
+                                                        alt="User avatar"
+                                                        className="profile-avatar-image"
+                                                    />
+                                                ) : (
+                                                    avatarLetter
+                                                ) }
+                                            </div> 
                                             <div className="profile-meta">
                                                 <div className="profile-name">{greetingName || "User"}</div>
                                                 <div className="profile-username">{user?.username ? `@${user.username}` : ""}</div>

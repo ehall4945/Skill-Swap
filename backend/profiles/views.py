@@ -3,6 +3,7 @@ from rest_framework import permissions, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
 from .models import Profile
 from .serializers import ProfileSerializer, PublicProfileSerializer
@@ -16,6 +17,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     # Highly recommended to uncomment this so random people can't edit profiles!
     permission_classes = [permissions.IsAuthenticated]
+
+    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         """
