@@ -13,13 +13,30 @@ class SkillListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Skill.objects.select_related("user").order_by("-created_at")
+        queryset = (
+            Skill.objects
+            .select_related("user", "user__profile")
+            .order_by("-created_at")
+        )
         mine_only = self.request.query_params.get("mine", "").lower()
+        discover_only = self.request.query_params.get("discover", "").lower()
 
         if mine_only in {"1", "true", "yes"}:
             return queryset.filter(user=self.request.user)
 
-        return queryset.exclude(user=self.request.user)
+        queryset = queryset.exclude(user=self.request.user)
+
+        if discover_only in {"1", "true", "yes"}:
+            requested_skill_ids = SwapRequest.objects.filter(
+                sender=self.request.user,
+            ).values_list("skill_id", flat=True)
+
+            return queryset.filter(
+                user__is_active=True,
+                skill_type="OFFER",
+            ).exclude(id__in=requested_skill_ids)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

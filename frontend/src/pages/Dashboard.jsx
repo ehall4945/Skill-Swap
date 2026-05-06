@@ -1,23 +1,73 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { SlidersHorizontal } from "lucide-react";
+import api from "../services/api";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import DiscoverSection from "../components/DiscoverSection";
+
+const MATCH_COLORS = ["#2F5AA8", "#E8912D", "#D04C5B", "#B695E3"];
+
+function normalizeRequestsPayload(data) {
+  const requestsData = data?.results ?? data;
+  return Array.isArray(requestsData) ? requestsData : [];
+}
+
+function getOtherUserName(request, currentUserId) {
+  const senderId = Number(request.sender_id ?? request.sender);
+  const receiverId = Number(request.receiver_id ?? request.receiver);
+
+  if (senderId === Number(currentUserId)) {
+    return request.receiver_name || "Community Member";
+  }
+
+  if (receiverId === Number(currentUserId)) {
+    return request.sender_name || "Community Member";
+  }
+
+  return request.receiver_name || request.sender_name || "Community Member";
+}
 
 /* -----------------------------
    MATCHES SECTION
 ----------------------------- */
 function MatchesSection() {
-  const matches = [
-    { name: "Anna", skill: "Spanish Tutor", wants: "JavaScript help", color: "#2F5AA8" },
-    { name: "John", skill: "JavaScript Tutor", wants: "Math help", color: "#E8912D" },
-    { name: "Mike", skill: "Guitar Teacher", wants: "Photography tips", color: "#D04C5B" },
-    { name: "Lena", skill: "UI Designer", wants: "React mentoring", color: "#B695E3" },
-    { name: "Carlos", skill: "Photography Tutor", wants: "Spanish practice", color: "#E8912D" },
-    { name: "Maya", skill: "Yoga Instructor", wants: "Web design help", color: "#2F5AA8" },
-    { name: "Sam", skill: "Data Science Tutor", wants: "Machine learning study partner", color: "#D04C5B" },
-  ];
+  const [matches, setMatches] = useState([]);
+  const [colorOffset] = useState(() => Math.floor(Math.random() * MATCH_COLORS.length));
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMatches() {
+      try {
+        const [userResponse, requestsResponse] = await Promise.all([
+          api.get("auth/me/"),
+          api.get("requests/"),
+        ]);
+
+        if (!isMounted) return;
+
+        const currentUserId = userResponse.data?.id;
+        const acceptedMatches = normalizeRequestsPayload(requestsResponse.data)
+          .filter((request) => request.status === "accepted")
+          .map((request) => ({
+            id: request.id,
+            name: getOtherUserName(request, currentUserId),
+            skill: request.skill_title || "Skill swap",
+          }));
+
+        setMatches(acceptedMatches);
+      } catch (error) {
+        console.error("Failed to load dashboard matches:", error);
+        if (isMounted) setMatches([]);
+      }
+    }
+
+    loadMatches();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="section-card">
@@ -28,14 +78,14 @@ function MatchesSection() {
       <div className="matches-row">
         {matches.map((match, index) => (
           <div
-            key={index}
+            key={match.id}
             className="match-pill"
-            style={{ backgroundColor: match.color }}
+            style={{ backgroundColor: MATCH_COLORS[(index + colorOffset) % MATCH_COLORS.length] }}
           >
             <strong>
               {match.name}: {match.skill}
             </strong>
-            <span>Wants: {match.wants}</span>
+            <span>Accepted swap</span>
           </div>
         ))}
       </div>

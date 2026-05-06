@@ -455,3 +455,19 @@
   cursor: not-allowed;
   opacity: 0.55;
 }
+.discover-section__feedback--error {
+  background: #fdecee;
+  color: #b64153;
+}
+
+.discover-section__empty-message {
+  margin: 0;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+}
