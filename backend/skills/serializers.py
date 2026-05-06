@@ -1,7 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Skill, SwapRequest
+from .models import Skill, SwapRequest, DismissedSkill
 
 User = get_user_model()
 
@@ -202,3 +202,10 @@ class SwapRequestSerializer(serializers.ModelSerializer):
 
         return attrs
         
+
+# For dismissed skills, so they don't reappear when swiping on dashboard discover
+class DismissedSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DismissedSkill
+        fields = ["id", "skill", "dismissed_at"]
+        read_only_fields = ["dismissed_at"]

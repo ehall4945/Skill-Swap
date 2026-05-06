@@ -378,6 +378,10 @@ export default function DiscoverSection() {
           skill: current.skillId,
           receiver: current.ownerId,
         });
+      } else {
+        await api.post("dismissed-skills/", {
+          skill: current.skillId,
+        });
       }
 
       const nextProfile = nextQueueIndex < queue.length

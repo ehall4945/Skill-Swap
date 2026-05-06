@@ -2,9 +2,9 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from rest_framework import exceptions
 from rest_framework import generics, mixins, permissions, viewsets
-from .models import Skill, SwapRequest
+from .models import Skill, SwapRequest, DismissedSkill
 from .permissions import IsRequestParticipant
-from .serializers import ConnectionSerializer, SkillSerializer, SwapRequestSerializer
+from .serializers import ConnectionSerializer, SkillSerializer, SwapRequestSerializer, DismissedSkillSerializer
 
 User = get_user_model()
 
@@ -31,10 +31,16 @@ class SkillListCreateView(generics.ListCreateAPIView):
                 sender=self.request.user,
             ).values_list("skill_id", flat=True)
 
+            dismissed_skill_ids = DismissedSkill.objects.filter(
+                user=self.request.user,
+            ).values_list("skill_id", flat=True)
+
             return queryset.filter(
                 user__is_active=True,
                 skill_type="OFFER",
-            ).exclude(id__in=requested_skill_ids)
+            ).exclude(
+                id__in=list(requested_skill_ids) + list(dismissed_skill_ids)
+            )
 
         return queryset
 
@@ -129,3 +135,10 @@ class ConnectionListView(generics.ListAPIView):
             is_active=True,
         ).order_by("first_name", "last_name", "email")
         
+#Dismissed skills, so old swipes don't reappear on page refresh/reload
+class DismissedSkillCreateView(generics.CreateAPIView):
+    serializer_class = DismissedSkillSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
