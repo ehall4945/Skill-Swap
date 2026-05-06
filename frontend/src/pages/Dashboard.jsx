@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
@@ -33,6 +33,7 @@ function getOtherUserName(request, currentUserId) {
 function MatchesSection() {
   const [matches, setMatches] = useState([]);
   const [colorOffset] = useState(() => Math.floor(Math.random() * MATCH_COLORS.length));
+  const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
@@ -49,11 +50,22 @@ function MatchesSection() {
         const currentUserId = userResponse.data?.id;
         const acceptedMatches = normalizeRequestsPayload(requestsResponse.data)
           .filter((request) => request.status === "accepted")
-          .map((request) => ({
-            id: request.id,
-            name: getOtherUserName(request, currentUserId),
-            skill: request.skill_title || "Skill swap",
-          }));
+          .map((request) => {
+            const senderId = Number(request.sender_id ?? request.sender);
+            const receiverId = Number(request.receiver_id ?? request.receiver);
+
+            const matchedUserId =
+              senderId === Number(currentUserId)
+                ? receiverId
+                : senderId;
+
+            return {
+              id: request.id,
+              userId: matchedUserId,
+              name: getOtherUserName(request, currentUserId),
+              skill: request.skill_title || "Skill swap",
+            };
+          });
 
         setMatches(acceptedMatches);
       } catch (error) {
@@ -77,16 +89,25 @@ function MatchesSection() {
 
       <div className="matches-row">
         {matches.map((match, index) => (
-          <div
+          <button
             key={match.id}
+            type="button"
             className="match-pill"
-            style={{ backgroundColor: MATCH_COLORS[(index + colorOffset) % MATCH_COLORS.length] }}
+            onClick={() => navigate(`/profile/${match.userId}`)}
+            style={{
+              backgroundColor:
+                MATCH_COLORS[(index + colorOffset) % MATCH_COLORS.length],
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             <strong>
-              {match.name}: {match.skill}
+              {match.name}
             </strong>
-            <span>Accepted swap</span>
-          </div>
+            <span>
+              {match.skill}
+            </span>
+          </button>
         ))}
       </div>
     </div>
