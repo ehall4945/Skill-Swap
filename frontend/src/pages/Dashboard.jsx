@@ -12,6 +12,11 @@ function normalizeRequestsPayload(data) {
   return Array.isArray(requestsData) ? requestsData : [];
 }
 
+function normalizeConversationsPayload(data) {
+  const conversationsData = data?.results ?? data;
+  return Array.isArray(conversationsData) ? conversationsData : [];
+}
+
 function getOtherUserName(request, currentUserId) {
   const senderId = Number(request.sender_id ?? request.sender);
   const receiverId = Number(request.receiver_id ?? request.receiver);
@@ -119,6 +124,10 @@ function MatchesSection() {
 ----------------------------- */
 function Dashboard() {
   const [firstName, setFirstName] = useState("User");
+  const [dashboardStats, setDashboardStats] = useState({
+    matches: 0,
+    unreadMessages: 0,
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -133,9 +142,44 @@ function Dashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboardStats() {
+      try {
+        const requestsResponse = await api.get("requests/");
+
+        if (!isMounted) return;
+
+        const acceptedMatchesCount = normalizeRequestsPayload(requestsResponse.data)
+          .filter((request) => request.status === "accepted")
+          .length;
+
+        setDashboardStats({
+          matches: acceptedMatchesCount,
+          unreadMessages: 0,
+        });
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+
+        if (isMounted) {
+          setDashboardStats({
+            matches: 0,
+            unreadMessages: 0,
+          });
+        }
+      }
+    }
+
+    loadDashboardStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <>
-      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
         <div className="dashboard-banner">
           <div className="banner-left">
@@ -149,26 +193,24 @@ function Dashboard() {
 
           <div className="banner-right">
             <div className="banner-stat">
-              <span className="stat-number">[#]</span>
+              <span className="stat-number">{dashboardStats.matches}</span>
               <span className="stat-label">New Matches</span>
             </div>
 
             <div className="banner-stat">
-              <span className="stat-number">[#]</span>
+              <span className="stat-number">{dashboardStats.unreadMessages}</span>
               <span className="stat-label">Messages</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
-        <MatchesSection /> 
+        <MatchesSection />
       </div>
 
-      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
-        <DiscoverSection />     
+        <DiscoverSection />
       </div>
     </>
   );
