@@ -471,13 +471,15 @@ export default function PublicProfile() {
           <div className="ratings-list">
             {ratingsSummary.reviews.length > 0 ? (
               ratingsSummary.reviews.map((review) => (
-                <div key={review.id} className="rating-item">
-                  <h4>★ {review.rating} / 5</h4>
+                <div key={review.id} className="rating-current-review profile-review-card">
+                  <div className="rating-current-stars">
+                    ★ {review.rating} / 5
+                  </div>
 
                   {review.review ? (
-                    <p>{review.review}</p>
+                    <p className="rating-current-text">{review.review}</p>
                   ) : (
-                    <p>No written review added.</p>
+                    <p className="public-profile-note">No written review added.</p>
                   )}
 
                   <span className="review-meta">
