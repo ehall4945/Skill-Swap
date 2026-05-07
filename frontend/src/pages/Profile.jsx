@@ -678,24 +678,26 @@ export default function Profile() {
           </div>
         </section>
 
-        <section className="profile-card danger-zone-card">
-          <div className="danger-zone-header">
-            <div>
-              <h3>Danger Zone</h3>
-              <p className="danger-zone-copy">
-                Permanently delete your account, profile, skills, and swap requests.
-                Existing chat history stays available to the other participant as coming from a deleted account.
-              </p>
+        {isEditMode && (
+          <section className="profile-card danger-zone-card">
+              <div className="danger-zone-header">
+                <div>
+                  <h3>Danger Zone</h3>
+                  <p className="danger-zone-copy">
+                    Permanently delete your account, profile, skills, and swap requests.
+                    Existing chat history stays available to the other participant as coming from a deleted account.
+                </p>
+                </div>
+                <button
+                  className="danger-btn"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                >
+                  {isDeletingAccount ? "Deleting..." : "Delete Account"}
+              </button>
             </div>
-            <button
-              className="danger-btn"
-              onClick={handleDeleteAccount}
-              disabled={isDeletingAccount}
-            >
-              {isDeletingAccount ? "Deleting..." : "Delete Account"}
-            </button>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );
