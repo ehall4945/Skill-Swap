@@ -82,10 +82,23 @@ class SwapRequestViewSet(
 
     def perform_create(self, serializer):
         receiver = serializer.validated_data["receiver"]
+
         if receiver == self.request.user:
             raise exceptions.ValidationError({
                 "receiver": "You cannot send a swap request to yourself."
             })
+
+        incoming_request = SwapRequest.objects.filter(
+            sender=receiver,
+            receiver=self.request.user,
+            status=SwapRequest.STATUS_PENDING,
+        ).first()
+
+        if incoming_request:
+            incoming_request.status = SwapRequest.STATUS_ACCEPTED
+            incoming_request.save(update_fields=["status"])
+            return
+
         serializer.save(sender=self.request.user)
 
     def _validate_status_transition(self, instance, requested_status):

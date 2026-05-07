@@ -379,7 +379,7 @@ export default function DiscoverSection() {
           receiver: current.ownerId,
         });
       } else {
-        await api.post("dismissed-skills/", {
+        await api.post("skills/dismissed-skills/", {
           skill: current.skillId,
         });
       }
