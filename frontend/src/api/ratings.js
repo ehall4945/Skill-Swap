@@ -1,13 +1,13 @@
-import axios from "axios";
+import api from "../services/api";
 
-const API = axios.create({
-  baseURL: "http://localhost:8000/api",
-});
+// Submit ratings
+export const submitRating = async (data) => {
+  const response = await api.post("ratings/", data);
+  return response.data;
+};
 
-// send rating
-export const submitRating = (data) =>
-  API.post("/ratings/", data);
-
-// get user ratings
-export const getUserRatings = (userId) =>
-  API.get(`/ratings/user/${userId}/`);
+// Get ratings
+export const getUserRatings = async (userId) => {
+  const response = await api.get(`ratings/user/${userId}/`);
+  return response.data;
+};
