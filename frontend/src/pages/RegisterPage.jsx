@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
 import styles from './RegisterPage.module.css';
-import background from '../images/background.png';
+import background from '../images/background_1.png';
 import skillswap from '../images/Skillswap.png'; 
 
 const EyeOpen = () => (
