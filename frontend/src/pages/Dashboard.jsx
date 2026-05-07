@@ -142,22 +142,33 @@ function Dashboard() {
     }
   }, []);
 
+  {/* Dashboard stats, both new messages and new matches count */}
   useEffect(() => {
     let isMounted = true;
 
     async function loadDashboardStats() {
       try {
-        const requestsResponse = await api.get("requests/");
+        const [requestsResponse, conversationsResponse] = await Promise.all([
+          api.get("requests/"),
+          api.get("chat/conversations/"),
+        ]);
 
         if (!isMounted) return;
 
+        {/* Updates dashboard with new matches count */}
         const acceptedMatchesCount = normalizeRequestsPayload(requestsResponse.data)
           .filter((request) => request.status === "accepted")
           .length;
 
+        {/* Updates dashboard with new messages count */}
+        const unreadMessagesCount = normalizeConversationsPayload(conversationsResponse.data)
+          .reduce((total, conversation) => {
+            return total + Number(conversation.unread_count || 0);
+          }, 0);
+
         setDashboardStats({
           matches: acceptedMatchesCount,
-          unreadMessages: 0,
+          unreadMessages: unreadMessagesCount,
         });
       } catch (error) {
         console.error("Failed to load dashboard stats:", error);
@@ -180,6 +191,7 @@ function Dashboard() {
 
   return (
     <>
+      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
         <div className="dashboard-banner">
           <div className="banner-left">
@@ -205,10 +217,12 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
         <MatchesSection />
       </div>
 
+      {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
         <DiscoverSection />
       </div>
