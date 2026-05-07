@@ -373,11 +373,17 @@ export default function DiscoverSection() {
     setBusyCardId(runtimeId);
 
     try {
+      let matchCreated = false;
+      let alreadyMatched = false;
+
       if (action === "like") {
-        await api.post("requests/", {
+        const response = await api.post("requests/", {
           skill: current.skillId,
           receiver: current.ownerId,
         });
+
+        matchCreated = Boolean(response.data?.match_created);
+        alreadyMatched = Boolean(response.data?.already_matched);
       } else {
         await api.post("skills/dismissed-skills/", {
           skill: current.skillId,
@@ -396,7 +402,7 @@ export default function DiscoverSection() {
       setNextQueueIndex((prev) => (nextProfile ? prev + 1 : prev));
       setFeedback({
         name: current.name,
-        action,
+        action: matchCreated ? "match" : alreadyMatched ? "alreadyMatched" : action,
       });
 
       setVisibleProfiles((prev) =>
@@ -446,18 +452,22 @@ export default function DiscoverSection() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               className={`discover-section__feedback ${
-                feedback.action === "like"
+                feedback.action === "like" || feedback.action === "match" || feedback.action === "alreadyMatched"
                   ? "discover-section__feedback--yes"
                   : feedback.action === "error"
                     ? "discover-section__feedback--error"
                     : "discover-section__feedback--pass"
               }`}
             >
-              {feedback.action === "like"
-                ? `Interested in ${feedback.name}`
-                : feedback.action === "error"
-                  ? feedback.message
-                  : `Passed on ${feedback.name}`}
+              {feedback.action === "match"
+                ? `Matched with ${feedback.name}!`
+                : feedback.action === "alreadyMatched"
+                  ? `You're already matched with ${feedback.name}`
+                  : feedback.action === "like"
+                    ? `Interested in ${feedback.name}`
+                    : feedback.action === "error"
+                      ? feedback.message
+                      : `Passed on ${feedback.name}`}
             </motion.div>
           ) : null}
         </AnimatePresence>
