@@ -649,3 +649,16 @@
   font-size: 0.9rem;
   color: #64748b;
 }
+
+.profile-review-card {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 20px 24px;
+}
+
+.ratings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 18px;
+}

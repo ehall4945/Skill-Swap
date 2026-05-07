@@ -468,7 +468,7 @@ export default function PublicProfile() {
             </p>
           ) : null}
 
-          <div className="ratings-grid">
+          <div className="ratings-list">
             {ratingsSummary.reviews.length > 0 ? (
               ratingsSummary.reviews.map((review) => (
                 <div key={review.id} className="rating-item">
