@@ -1,12 +1,20 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Skill, SwapRequest
+from .models import Skill, SwapRequest, DismissedSkill
 
 User = get_user_model()
 
 def get_display_name(user):
     full_name = user.get_full_name().strip() if hasattr(user, "get_full_name") else ""
     return full_name or user.email
+
+
+def get_user_profile(user):
+    try:
+        return user.profile
+    except ObjectDoesNotExist:
+        return None
 
 
 class ConnectionSerializer(serializers.ModelSerializer):
@@ -21,15 +29,54 @@ class ConnectionSerializer(serializers.ModelSerializer):
 
 class SkillSerializer(serializers.ModelSerializer):
     owner_name = serializers.SerializerMethodField()
+    owner_first_name = serializers.ReadOnlyField(source="user.first_name")
+    owner_last_name = serializers.ReadOnlyField(source="user.last_name")
+    owner_headline = serializers.SerializerMethodField()
+    owner_location = serializers.SerializerMethodField()
+    owner_location_display = serializers.SerializerMethodField()
+    owner_skills_wanted = serializers.SerializerMethodField()
+    owner_profile_image = serializers.SerializerMethodField()
 
     def get_owner_name(self, obj):
         return get_display_name(obj.user)
+
+    def get_owner_headline(self, obj):
+        profile = get_user_profile(obj.user)
+        return profile.headline if profile else ""
+
+    def get_owner_location(self, obj):
+        profile = get_user_profile(obj.user)
+        return profile.location if profile else ""
+
+    def get_owner_location_display(self, obj):
+        profile = get_user_profile(obj.user)
+        return profile.get_location_display() if profile and profile.location else ""
+
+    def get_owner_skills_wanted(self, obj):
+        profile = get_user_profile(obj.user)
+        return profile.skills_wanted if profile else ""
+
+    def get_owner_profile_image(self, obj):
+        profile = get_user_profile(obj.user)
+        if not profile or not profile.profile_image:
+            return ""
+
+        image_url = profile.profile_image.url
+        request = self.context.get("request")
+        return request.build_absolute_uri(image_url) if request else image_url
 
     class Meta:
         model = Skill
         fields = [
             'id',
             'owner_name',
+            'owner_first_name',
+            'owner_last_name',
+            'owner_headline',
+            'owner_location',
+            'owner_location_display',
+            'owner_skills_wanted',
+            'owner_profile_image',
             'user',
             'title',
             'description',
@@ -38,34 +85,60 @@ class SkillSerializer(serializers.ModelSerializer):
             'created_at'
         ]
 
-        read_only_fields = ['user', 'owner_name', 'created_at']
+        read_only_fields = [
+            'user',
+            'owner_name',
+            'owner_first_name',
+            'owner_last_name',
+            'owner_headline',
+            'owner_location',
+            'owner_location_display',
+            'owner_skills_wanted',
+            'owner_profile_image',
+            'created_at',
+        ]
 
 
 class SwapRequestSerializer(serializers.ModelSerializer):
+    sender_id = serializers.ReadOnlyField(source="sender.id")
+    receiver_id = serializers.ReadOnlyField(source="receiver.id")
     sender_name = serializers.SerializerMethodField()
+    receiver_name = serializers.SerializerMethodField()
     skill_title = serializers.ReadOnlyField(source="skill.title")
+    skill_category = serializers.ReadOnlyField(source="skill.category")
 
     class Meta:
         model = SwapRequest
         fields = [
             "id",
             "sender",
+            "sender_id",
             "receiver",
+            "receiver_id",
             "skill",
             "status",
             "created_at",
             "sender_name",
+            "receiver_name",
             "skill_title",
+            "skill_category",
         ]
         read_only_fields = [
             "sender",
+            "sender_id",
+            "receiver_id",
             "created_at",
             "sender_name",
+            "receiver_name",
             "skill_title",
+            "skill_category",
         ]
 
     def get_sender_name(self, obj):
         return get_display_name(obj.sender)
+
+    def get_receiver_name(self, obj):
+        return get_display_name(obj.receiver)
 
     def validate(self, attrs):
         request = self.context.get("request")
@@ -129,3 +202,10 @@ class SwapRequestSerializer(serializers.ModelSerializer):
 
         return attrs
         
+
+# For dismissed skills, so they don't reappear when swiping on dashboard discover
+class DismissedSkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DismissedSkill
+        fields = ["id", "skill", "dismissed_at"]
+        read_only_fields = ["dismissed_at"]

@@ -64,6 +64,7 @@ urlpatterns = [
     path('api/profiles/', include('profiles.urls')),
     path('api/skills/', include('skills.urls')),
     path('api/notifications/', include('notifications.urls')),
+    path('api/ratings/', include('ratings.urls')),
     path('api/connections/', ConnectionListView.as_view(), name='connection-list'),
 
     # Swap Request endpoints

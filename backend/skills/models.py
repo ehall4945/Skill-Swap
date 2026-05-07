@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
-
+from django.conf import settings
 
 class Skill(models.Model):
 
@@ -72,4 +72,27 @@ class SwapRequest(models.Model):
     def __str__(self):
         sender_id = getattr(self.sender, 'username', self.sender.email)
         return f"{sender_id} -> {self.skill.title} [{self.status}]"
-        
+
+
+# Dismissed Skills model, so already swiped on listings don't reappear on page refresh
+class DismissedSkill(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="dismissed_skills"
+    )
+
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name="dismissed_by"
+    )
+
+    dismissed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "skill")
+        ordering = ["-dismissed_at"]
+
+    def __str__(self):
+        return f"{self.user.username} dismissed {self.skill.title}"

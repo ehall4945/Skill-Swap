@@ -75,14 +75,15 @@
 }
 
 .match-pill {
-  min-width: 220px;
-  padding: 18px 20px;
-  border-radius: 10px;
+  min-width: 180px;
+  max-width: 260px;
+  padding: 14px 18px;
+  border-radius: 18px;
   color: white;
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  text-align: center;
+  transition: transform 0.15s ease;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .match-pill:hover {
@@ -91,12 +92,24 @@
 }
 
 .match-pill strong {
+  display: block;
   font-size: 15px;
-  margin-bottom: 4px;
+  line-height: 1.2;
+  margin-bottom: 6px;
 }
 
 .match-pill span {
-  opacity: 0.9;
+  display: block;
+  font-size: 13px;
+  opacity: 0.95;
+  line-height: 1.2;
+}
+
+.match-pill small {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.8;
 }
 
 /* -------------------------------

@@ -1,23 +1,90 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { SlidersHorizontal } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
 import "./Dashboard.css";
 import "../layout/AppLayout.css";
 import DiscoverSection from "../components/DiscoverSection";
+
+const MATCH_COLORS = ["#2F5AA8", "#E8912D", "#D04C5B", "#B695E3"];
+
+function normalizeRequestsPayload(data) {
+  const requestsData = data?.results ?? data;
+  return Array.isArray(requestsData) ? requestsData : [];
+}
+
+function normalizeConversationsPayload(data) {
+  const conversationsData = data?.results ?? data;
+  return Array.isArray(conversationsData) ? conversationsData : [];
+}
+
+function getOtherUserName(request, currentUserId) {
+  const senderId = Number(request.sender_id ?? request.sender);
+  const receiverId = Number(request.receiver_id ?? request.receiver);
+
+  if (senderId === Number(currentUserId)) {
+    return request.receiver_name || "Community Member";
+  }
+
+  if (receiverId === Number(currentUserId)) {
+    return request.sender_name || "Community Member";
+  }
+
+  return request.receiver_name || request.sender_name || "Community Member";
+}
 
 /* -----------------------------
    MATCHES SECTION
 ----------------------------- */
 function MatchesSection() {
-  const matches = [
-    { name: "Anna", skill: "Spanish Tutor", wants: "JavaScript help", color: "#2F5AA8" },
-    { name: "John", skill: "JavaScript Tutor", wants: "Math help", color: "#E8912D" },
-    { name: "Mike", skill: "Guitar Teacher", wants: "Photography tips", color: "#D04C5B" },
-    { name: "Lena", skill: "UI Designer", wants: "React mentoring", color: "#B695E3" },
-    { name: "Carlos", skill: "Photography Tutor", wants: "Spanish practice", color: "#E8912D" },
-    { name: "Maya", skill: "Yoga Instructor", wants: "Web design help", color: "#2F5AA8" },
-    { name: "Sam", skill: "Data Science Tutor", wants: "Machine learning study partner", color: "#D04C5B" },
-  ];
+  const [matches, setMatches] = useState([]);
+  const [colorOffset] = useState(() => Math.floor(Math.random() * MATCH_COLORS.length));
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMatches() {
+      try {
+        const [userResponse, requestsResponse] = await Promise.all([
+          api.get("auth/me/"),
+          api.get("requests/"),
+        ]);
+
+        if (!isMounted) return;
+
+        const currentUserId = userResponse.data?.id;
+        const acceptedMatches = normalizeRequestsPayload(requestsResponse.data)
+          .filter((request) => request.status === "accepted")
+          .map((request) => {
+            const senderId = Number(request.sender_id ?? request.sender);
+            const receiverId = Number(request.receiver_id ?? request.receiver);
+
+            const matchedUserId =
+              senderId === Number(currentUserId)
+                ? receiverId
+                : senderId;
+
+            return {
+              id: request.id,
+              userId: matchedUserId,
+              name: getOtherUserName(request, currentUserId),
+              skill: request.skill_title || "Skill swap",
+            };
+          });
+
+        setMatches(acceptedMatches);
+      } catch (error) {
+        console.error("Failed to load dashboard matches:", error);
+        if (isMounted) setMatches([]);
+      }
+    }
+
+    loadMatches();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="section-card">
@@ -27,16 +94,25 @@ function MatchesSection() {
 
       <div className="matches-row">
         {matches.map((match, index) => (
-          <div
-            key={index}
+          <button
+            key={match.id}
+            type="button"
             className="match-pill"
-            style={{ backgroundColor: match.color }}
+            onClick={() => navigate(`/profile/${match.userId}`)}
+            style={{
+              backgroundColor:
+                MATCH_COLORS[(index + colorOffset) % MATCH_COLORS.length],
+              border: "none",
+              cursor: "pointer",
+            }}
           >
             <strong>
-              {match.name}: {match.skill}
+              {match.name}
             </strong>
-            <span>Wants: {match.wants}</span>
-          </div>
+            <span>
+              {match.skill}
+            </span>
+          </button>
         ))}
       </div>
     </div>
@@ -48,6 +124,10 @@ function MatchesSection() {
 ----------------------------- */
 function Dashboard() {
   const [firstName, setFirstName] = useState("User");
+  const [dashboardStats, setDashboardStats] = useState({
+    matches: 0,
+    unreadMessages: 0,
+  });
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -60,6 +140,53 @@ function Dashboard() {
     } catch (error) {
       console.error("Error parsing user data:", error);
     }
+  }, []);
+
+  {/* Dashboard stats, both new messages and new matches count */}
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboardStats() {
+      try {
+        const [requestsResponse, conversationsResponse] = await Promise.all([
+          api.get("requests/"),
+          api.get("chat/conversations/"),
+        ]);
+
+        if (!isMounted) return;
+
+        {/* Updates dashboard with new matches count */}
+        const acceptedMatchesCount = normalizeRequestsPayload(requestsResponse.data)
+          .filter((request) => request.status === "accepted")
+          .length;
+
+        {/* Updates dashboard with new messages count */}
+        const unreadMessagesCount = normalizeConversationsPayload(conversationsResponse.data)
+          .reduce((total, conversation) => {
+            return total + Number(conversation.unread_count || 0);
+          }, 0);
+
+        setDashboardStats({
+          matches: acceptedMatchesCount,
+          unreadMessages: unreadMessagesCount,
+        });
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+
+        if (isMounted) {
+          setDashboardStats({
+            matches: 0,
+            unreadMessages: 0,
+          });
+        }
+      }
+    }
+
+    loadDashboardStats();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -78,12 +205,12 @@ function Dashboard() {
 
           <div className="banner-right">
             <div className="banner-stat">
-              <span className="stat-number">[#]</span>
+              <span className="stat-number">{dashboardStats.matches}</span>
               <span className="stat-label">New Matches</span>
             </div>
 
             <div className="banner-stat">
-              <span className="stat-number">[#]</span>
+              <span className="stat-number">{dashboardStats.unreadMessages}</span>
               <span className="stat-label">Messages</span>
             </div>
           </div>
@@ -92,12 +219,12 @@ function Dashboard() {
 
       {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
-        <MatchesSection /> 
+        <MatchesSection />
       </div>
 
       {/* dashboard-section div is so content loads with animation */}
       <div className="dashboard-section">
-        <DiscoverSection />     
+        <DiscoverSection />
       </div>
     </>
   );

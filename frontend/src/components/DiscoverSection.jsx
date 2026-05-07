@@ -1,101 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, X, Ellipsis, Info } from "lucide-react";
+import api from "../services/api";
 import demoProfile from "../images/demo-profile.png";
 import "./DiscoverSection.css";
-
-/* Hard coded profiles to use for V1 demo */
-const INITIAL_PROFILES = [
-  {
-    id: 1,
-    name: "Kevin",
-    pronouns: "He/Him/His",
-    headline: "Film Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Film Tutor",
-    seeking: "Spanish Tutor",
-    accent: "purple",
-    image: demoProfile
-  },
-  {
-    id: 2,
-    name: "Anna",
-    pronouns: "She/Her/Hers",
-    headline: "Spanish Tutor at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Spanish Tutor",
-    seeking: "JavaScript Help",
-    accent: "blue",
-    image: demoProfile
-  },
-  {
-    id: 3,
-    name: "Mike",
-    pronouns: "He/Him/His",
-    headline: "Music Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Guitar Teacher",
-    seeking: "Photography Tips",
-    accent: "purple",
-    image: demoProfile
-  },
-  {
-    id: 4,
-    name: "Sara",
-    pronouns: "She/Her/Hers",
-    headline:
-      "Computer Science Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Python Tutor",
-    seeking: "Public Speaking Help",
-    accent: "blue",
-    image: demoProfile
-  },
-  {
-    id: 5,
-    name: "Jordan",
-    pronouns: "They/Them",
-    headline: "Design Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "UI Design Tutor",
-    seeking: "React Mentor",
-    accent: "purple",
-    image: demoProfile
-  },
-  {
-    id: 6,
-    name: "Lila",
-    pronouns: "She/Her/Hers",
-    headline: "Business Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Marketing Tutor",
-    seeking: "Excel Help",
-    accent: "blue",
-    image: demoProfile
-  },
-  {
-    id: 7,
-    name: "Omar",
-    pronouns: "He/Him/His",
-    headline: "Engineering Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "CAD Tutor",
-    seeking: "Resume Help",
-    accent: "purple",
-    image: demoProfile
-  },
-  {
-    id: 8,
-    name: "Nina",
-    pronouns: "She/Her/Hers",
-    headline: "Education Student at UW-Milwaukee",
-    location: "Milwaukee, Wisconsin",
-    teaches: "Writing Tutor",
-    seeking: "Statistics Help",
-    accent: "blue",
-    image: demoProfile
-  },
-];
 
 /* A maximum of three profiles will ever be displayed at a time */
 const VISIBLE_COUNT = 3;
@@ -113,47 +21,69 @@ function getDisplayCount() {
   return 3;
 }
 
-/*
-*  Builds the internal queue of profiles used by the discover feed.
-*  Each profile receives a unique runtimeId so React can properly
-*  track card animations when profiles enter or leave the grid.
-*/
-function buildQueue() {
-  return INITIAL_PROFILES.map((profile, index) => ({
-    ...profile,
-    isIncoming: false,
-    runtimeId: `${profile.id}-${index}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`,
-  }));
+function normalizeSkillsPayload(data) {
+  const skillsData = data?.results ?? data;
+  return Array.isArray(skillsData) ? skillsData : [];
+}
+
+function getApiErrorMessage(error, fallbackMessage) {
+  const apiData = error.response?.data;
+
+  if (typeof apiData?.detail === "string") {
+    return apiData.detail;
+  }
+
+  if (typeof apiData === "object" && apiData !== null) {
+    const firstError = Object.values(apiData).flat()[0];
+    if (typeof firstError === "string") return firstError;
+  }
+
+  return fallbackMessage;
+}
+
+function normalizeImageUrl(imageUrl) {
+  if (!imageUrl) return demoProfile;
+  if (imageUrl.startsWith("http")) return imageUrl;
+  return `http://localhost:8000${imageUrl}`;
+}
+
+function getFirstName(skill) {
+  if (skill.owner_first_name?.trim()) return skill.owner_first_name.trim();
+  if (skill.owner_name?.trim()) return skill.owner_name.trim().split(" ")[0];
+  return "Community Member";
+}
+
+function getOwnerId(skill) {
+  return typeof skill.user === "object" ? skill.user?.id : skill.user;
+}
+
+function buildRuntimeId(id) {
+  return `${id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 /*
-*  Selects the next profile to insert into the discover feed.
-*  Priority is given to profiles that have not yet been shown.
-*  If all profiles have been used, a random one is recycled.
+*  Builds the internal queue from real backend skill postings.
+*  Each skill posting becomes one Discover card.
 */
-function getNextProfile(queue, usedIds) {
-  const unused = queue.find((profile) => !usedIds.has(profile.id));
-
-  if (unused) {
-    return {
-      ...unused,
-      isIncoming: true,
-      runtimeId: `${unused.id}-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}`,
-    };
-  }
-
-  const recycled = queue[Math.floor(Math.random() * queue.length)];
-  return {
-    ...recycled,
-    isIncoming: true,
-    runtimeId: `${recycled.id}-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`,
-  };
+function buildQueue(skills) {
+  return skills.map((skill, index) => ({
+    id: skill.id,
+    skillId: skill.id,
+    ownerId: getOwnerId(skill),
+    name: getFirstName(skill),
+    fullName: skill.owner_name || getFirstName(skill),
+    pronouns: "",
+    headline: skill.owner_headline || `Offering ${skill.title}`,
+    location: skill.owner_location_display || skill.owner_location || "Location not listed",
+    teaches: skill.title,
+    seeking: skill.owner_skills_wanted || "a new skill exchange",
+    description: skill.description,
+    category: skill.category,
+    accent: index % 2 === 0 ? "purple" : "blue",
+    image: normalizeImageUrl(skill.owner_profile_image),
+    isIncoming: false,
+    runtimeId: buildRuntimeId(skill.id),
+  }));
 }
 
 /*
@@ -229,7 +159,9 @@ function ProfileCard({ profile, onDecision, disabled }) {
         <div className="discover-card__content">
           <div className="discover-card__name-row">
             <h3 className="discover-card__name">{profile.name}</h3>
-            <span className="discover-card__pronouns">({profile.pronouns})</span>
+            {profile.pronouns ? (
+              <span className="discover-card__pronouns">({profile.pronouns})</span>
+            ) : null}
           </div>
 
           <p className="discover-card__headline">{profile.headline}</p>
@@ -319,9 +251,7 @@ function ProfileCard({ profile, onDecision, disabled }) {
         <div className="discover-card__back-section">
           <h5 className="discover-card__back-label">About</h5>
           <p className="discover-card__back-text">
-            {profile.name} is a {profile.headline.toLowerCase()} who can help
-            with {profile.teaches.toLowerCase()} and is currently looking for{" "}
-            {profile.seeking.toLowerCase()}.
+            {profile.description || `${profile.name} can help with ${profile.teaches.toLowerCase()}.`}
           </p>
         </div>
 
@@ -338,7 +268,7 @@ function ProfileCard({ profile, onDecision, disabled }) {
         <div className="discover-card__back-section">
           <h5 className="discover-card__back-label">Quick details</h5>
           <ul className="discover-card__back-list">
-            <li>{profile.pronouns}</li>
+            <li>{profile.category || "Skill swap"}</li>
             <li>{profile.location}</li>
             <li>Open to skill exchange</li>
           </ul>
@@ -360,21 +290,48 @@ function ProfileCard({ profile, onDecision, disabled }) {
 
 /*
 *  Main Discover feed component.
-*  Manages profile queue state, card transitions,
+*  Manages the real backend skill queue, card transitions,
 *  user decisions, and responsive card counts.
 */
 export default function DiscoverSection() {
-  const queue = useMemo(() => buildQueue(), []);
-  const [visibleProfiles, setVisibleProfiles] = useState(
-    queue.slice(0, VISIBLE_COUNT)
-  );
-  const [usedProfileIds, setUsedProfileIds] = useState(
-    new Set(queue.slice(0, VISIBLE_COUNT).map((profile) => profile.id))
-  );
+  const [queue, setQueue] = useState([]);
+  const [visibleProfiles, setVisibleProfiles] = useState([]);
+  const [nextQueueIndex, setNextQueueIndex] = useState(VISIBLE_COUNT);
   const [feedback, setFeedback] = useState(null);
   const [busyCardId, setBusyCardId] = useState(null);
   const [pendingProfile, setPendingProfile] = useState(null);
   const [displayCount, setDisplayCount] = useState(getDisplayCount);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDiscoverSkills() {
+      try {
+        const response = await api.get("skills/?discover=true");
+        const nextQueue = buildQueue(normalizeSkillsPayload(response.data));
+
+        if (!isMounted) return;
+
+        setQueue(nextQueue);
+        setVisibleProfiles(nextQueue.slice(0, VISIBLE_COUNT));
+        setNextQueueIndex(Math.min(VISIBLE_COUNT, nextQueue.length));
+        setLoadError("");
+      } catch (error) {
+        if (!isMounted) return;
+        setLoadError(getApiErrorMessage(error, "We couldn't load skill postings right now."));
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    loadDiscoverSkills();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /*
   *  Automatically clears the feedback message
@@ -403,10 +360,9 @@ export default function DiscoverSection() {
 
   /*
   *  Handles a user's decision on a profile card.
-  *  Removes the current card, prepares the next profile,
-  *  and triggers the exit animation before inserting the new card.
+  *  "Yes" creates a real swap request before the card leaves the grid.
   */
-  const handleDecision = (runtimeId, action) => {
+  const handleDecision = async (runtimeId, action) => {
     if (busyCardId) return;
 
     const current = visibleProfiles.find(
@@ -414,27 +370,51 @@ export default function DiscoverSection() {
     );
     if (!current) return;
 
-    const nextProfile = getNextProfile(
-      queue,
-      new Set([...usedProfileIds, current.id])
-    );
-
     setBusyCardId(runtimeId);
-    setPendingProfile(nextProfile);
-    setFeedback({
-      name: current.name,
-      action,
-    });
 
-    setUsedProfileIds((prev) => {
-      const updated = new Set(prev);
-      updated.add(current.id);
-      return updated;
-    });
+    try {
+      let matchCreated = false;
+      let alreadyMatched = false;
 
-    setVisibleProfiles((prev) =>
-      prev.filter((profile) => profile.runtimeId !== runtimeId)
-    );
+      if (action === "like") {
+        const response = await api.post("requests/", {
+          skill: current.skillId,
+          receiver: current.ownerId,
+        });
+
+        matchCreated = Boolean(response.data?.match_created);
+        alreadyMatched = Boolean(response.data?.already_matched);
+      } else {
+        await api.post("skills/dismissed-skills/", {
+          skill: current.skillId,
+        });
+      }
+
+      const nextProfile = nextQueueIndex < queue.length
+        ? {
+            ...queue[nextQueueIndex],
+            isIncoming: true,
+            runtimeId: buildRuntimeId(queue[nextQueueIndex].id),
+          }
+        : null;
+
+      setPendingProfile(nextProfile);
+      setNextQueueIndex((prev) => (nextProfile ? prev + 1 : prev));
+      setFeedback({
+        name: current.name,
+        action: matchCreated ? "match" : alreadyMatched ? "alreadyMatched" : action,
+      });
+
+      setVisibleProfiles((prev) =>
+        prev.filter((profile) => profile.runtimeId !== runtimeId)
+      );
+    } catch (error) {
+      setFeedback({
+        action: "error",
+        message: getApiErrorMessage(error, "Could not send that swap request."),
+      });
+      setBusyCardId(null);
+    }
   };
 
   /*
@@ -443,12 +423,15 @@ export default function DiscoverSection() {
   *  unlocks the interface for the next interaction.
   */
   const handleExitComplete = () => {
-    if (!pendingProfile) return;
+    if (pendingProfile) {
+      setVisibleProfiles((prev) => [...prev, pendingProfile]);
+    }
 
-    setVisibleProfiles((prev) => [...prev, pendingProfile]);
     setPendingProfile(null);
     setBusyCardId(null);
   };
+
+  const hasVisibleProfiles = visibleProfiles.length > 0;
 
   /*
   *  Render the Discover section including the title,
@@ -464,41 +447,59 @@ export default function DiscoverSection() {
         <AnimatePresence mode="wait">
           {feedback ? (
             <motion.div
-              key={`${feedback.name}-${feedback.action}`}
+              key={`${feedback.name || "message"}-${feedback.action}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               className={`discover-section__feedback ${
-                feedback.action === "like"
+                feedback.action === "like" || feedback.action === "match" || feedback.action === "alreadyMatched"
                   ? "discover-section__feedback--yes"
-                  : "discover-section__feedback--pass"
+                  : feedback.action === "error"
+                    ? "discover-section__feedback--error"
+                    : "discover-section__feedback--pass"
               }`}
             >
-              {feedback.action === "like"
-                ? `Interested in ${feedback.name}`
-                : `Passed on ${feedback.name}`}
+              {feedback.action === "match"
+                ? `Matched with ${feedback.name}!`
+                : feedback.action === "alreadyMatched"
+                  ? `You're already matched with ${feedback.name}`
+                  : feedback.action === "like"
+                    ? `Interested in ${feedback.name}`
+                    : feedback.action === "error"
+                      ? feedback.message
+                      : `Passed on ${feedback.name}`}
             </motion.div>
           ) : null}
         </AnimatePresence>
       </div>
 
       <div className="discover-cards-box">
-        <motion.div layout className="discover-grid">
-          <AnimatePresence
-            initial={false}
-            mode="popLayout"
-            onExitComplete={handleExitComplete}
-          >
-          {visibleProfiles.slice(0, displayCount).map((profile) => (
-            <ProfileCard
-              key={profile.runtimeId}
-              profile={profile}
-              onDecision={handleDecision}
-              disabled={Boolean(busyCardId)}
-            />
-          ))}
-          </AnimatePresence>
-        </motion.div>
+        {loading ? (
+          <p className="discover-section__empty-message">Loading skill postings...</p>
+        ) : loadError ? (
+          <p className="discover-section__empty-message">{loadError}</p>
+        ) : !hasVisibleProfiles ? (
+          <p className="discover-section__empty-message">
+            No new skill postings near you right now. Check back soon for fresh swaps.
+          </p>
+        ) : (
+          <motion.div layout className="discover-grid">
+            <AnimatePresence
+              initial={false}
+              mode="popLayout"
+              onExitComplete={handleExitComplete}
+            >
+            {visibleProfiles.slice(0, displayCount).map((profile) => (
+              <ProfileCard
+                key={profile.runtimeId}
+                profile={profile}
+                onDecision={handleDecision}
+                disabled={Boolean(busyCardId)}
+              />
+            ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
       </div>
     </section>
   );

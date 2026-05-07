@@ -6,6 +6,7 @@ import api from "../services/api";
 import "../layout/AppLayout.css"; 
 import "./Profile.css"; 
 import { storeUser, getStoredUser } from "../api/client";
+import { getUserRatings } from "../api/ratings";
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -39,6 +40,14 @@ export default function Profile() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser, logout } = useAuth(); 
+
+  // New profile rating summary:
+  // Includes average score, number of ratings, and reviews
+  const [profileRatingSummary, setProfileRatingSummary] = useState({
+    average: null,
+    count: 0,
+    reviews: [],
+  });
   
   // NEW: State for handling edits
   const [isEditing, setIsEditing] = useState(false);
@@ -108,6 +117,37 @@ export default function Profile() {
       isMounted = false;
     };
   }, []);
+
+  // Loads the new profile rating summary
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfileRatingSummary() {
+      const ratingUserId = Number(profile?.user ?? user?.id);
+
+      if (!ratingUserId) return;
+
+      try {
+        const data = await getUserRatings(ratingUserId);
+
+        if (!isMounted) return;
+
+        setProfileRatingSummary({
+          average: data.average,
+          count: data.count || 0,
+          reviews: Array.isArray(data.reviews) ? data.reviews : [],
+        });
+      } catch (requestError) {
+        console.error("Failed to load profile rating summary:", requestError);
+      }
+    }
+
+    loadProfileRatingSummary();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [profile?.user, user?.id]);
 
   useEffect(() => {
     // Check if we arrived here with a "flash message"
@@ -569,8 +609,16 @@ export default function Profile() {
                 </button>
               </div>
               
+              {/* New profile rating display */}
               <div className="profile-rating">
-                RATING #/10
+                {profileRatingSummary.count > 0 ? (
+                  <>
+                    ★ {profileRatingSummary.average} / 5 · {profileRatingSummary.count}{" "}
+                    {profileRatingSummary.count === 1 ? "review" : "reviews"}
+                  </>
+                ) : (
+                  "No ratings yet"
+                )}
               </div>
             </div>
           </div>
@@ -662,19 +710,42 @@ export default function Profile() {
           ) }
         </section>
       
-        {/* rating */}
+        {/* Ratings from other users, appears at the bottom of profile page */}
         <section className="profile-card ratings-card">
-          <h3>Ratings</h3>
-          <div className="ratings-grid">
-            {[1, 2, 3].map(i => (
-            <div key={i} className="rating-item">
-              <h4>Review title</h4>
-              <p>Review body</p>
-              <span className="review-meta">
-                Review date
-              </span>
-            </div>
-            ))}
+          <div className="card-header">
+            <h3>Ratings</h3>
+
+            <span className="public-profile-section-note">
+              {profileRatingSummary.count > 0
+                ? `${profileRatingSummary.average} / 5 average`
+                : "No ratings yet"}
+            </span>
+          </div>
+
+          <div className="ratings-list">
+            {profileRatingSummary.reviews.length > 0 ? (
+              profileRatingSummary.reviews.map((review) => (
+                <div key={review.id} className="rating-current-review profile-review-card">
+                  <div className="rating-current-stars">
+                    ★ {review.rating} / 5
+                  </div>
+
+                  {review.review ? (
+                    <p className="rating-current-text">{review.review}</p>
+                  ) : (
+                    <p className="public-profile-note">No written review added.</p>
+                  )}
+
+                  <span className="review-meta">
+                    {review.reviewer_name}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="public-profile-note">
+                No one has reviewed you yet.
+              </p>
+            )}
           </div>
         </section>
 
